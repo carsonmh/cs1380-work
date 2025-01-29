@@ -27,10 +27,26 @@ For example, `execSync(`echo "${input}" | ./c/process.sh`, {encoding: 'utf-8'});
 
 const fs = require('fs');
 const {execSync} = require('child_process');
-const path = require('path');
+// const path = require('path');
 
 
 function query(indexFile, args) {
+  const res = execSync(`echo "${args}" | ./c/process.sh`, {encoding: 'utf-8'});
+  const res2 = execSync(`echo "${res}" | ./c/stem.js`, {encoding: 'utf-8'}).trim().split('\n').join(' ');
+
+  fs.readFile(indexFile, 'utf-8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    const lines = data.split('\n');
+    for (const line of lines) {
+      if (line.includes(res2.trim())) {
+        console.log(line);
+      }
+    }
+  });
 }
 
 const args = process.argv.slice(2); // Get command-line arguments

@@ -32,6 +32,7 @@ Remember to error gracefully, particularly when reading the global index file.
 */
 
 const fs = require('fs');
+// const {url} = require('inspector');
 const readline = require('readline');
 // The `compare` function can be used for sorting.
 const compare = (a, b) => {
@@ -50,11 +51,19 @@ const rl = readline.createInterface({
 // 1. Read the incoming local index data from standard input (stdin) line by line.
 let localIndex = '';
 rl.on('line', (line) => {
+  localIndex += line + '\n';
 });
 
 rl.on('close', () => {
   // 2. Read the global index name/location, using process.argv
   // and call printMerged as a callback
+  const location = process.argv[2];
+  fs.readFile(location, 'utf8', (err, data) => {
+    if (err) {
+      return;
+    }
+    printMerged(err, data);
+  });
 });
 
 const printMerged = (err, data) => {
@@ -75,13 +84,31 @@ const printMerged = (err, data) => {
 
   // 3. For each line in `localIndexLines`, parse them and add them to the `local` object where keys are terms and values contain `url` and `freq`.
   for (const line of localIndexLines) {
-    local[term] = {url, freq};
+    const lineArray = line.split(' | ');
+    const term = lineArray[0];
+    const freq = lineArray[1];
+    const url = lineArray[2];
+    local[term] = {'url': url, 'freq': parseInt(freq)};
   }
 
   // 4. For each line in `globalIndexLines`, parse them and add them to the `global` object where keys are terms and values are arrays of `url` and `freq` objects.
   // Use the .trim() method to remove leading and trailing whitespace from a string.
   for (const line of globalIndexLines) {
-    global[term] = urlfs; // Array of {url, freq} objects
+    const lineArray = line.split(' | ');
+    const term = lineArray[0].trim();
+    const arr = lineArray[1].split(' ');
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = arr[i].trim();
+    }
+
+    const newArr = [];
+    for (let i = 0; i < arr.length; i++) {
+      if (i % 2 == 1) {
+        newArr.push({'url': arr[i - 1], 'freq': parseInt(arr[i])});
+      }
+    }
+
+    global[term] = newArr;
   }
 
   // 5. Merge the local index into the global index:
@@ -90,6 +117,22 @@ const printMerged = (err, data) => {
   //     - Sort the array by `freq` in descending order.
   // - If the term does not exist in the global index:
   //     - Add it as a new entry with the local index's data.
+  for (const term in local) {
+    if (term in global) {
+      global[term].push(local[term]);
+      global[term].sort(compare);
+    } else {
+      global[term] = [local[term]];
+    }
+  }
+
   // 6. Print the merged index to the console in the same format as the global index file:
   //    - Each line contains a term, followed by a pipe (`|`), followed by space-separated pairs of `url` and `freq`.
+  for (const term in global) {
+    let string = term + ' |';
+    for (const obj of global[term]) {
+      string += ' ' + obj.url + ' ' + obj.freq;
+    }
+    console.log(string);
+  }
 };
