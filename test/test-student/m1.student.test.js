@@ -44,7 +44,7 @@ test('(1 pts) student test', () => {
 test('(1 pts) student test', () => {
   // Fill out this test case...
   const date = new Date('05-04-2023');
-  const object = {value1: 'string', value2: undefined, value3: date};
+  const object = {value1: 'string', value2: undefined, value3: date, value4: {val: {val2: {val3: {val4: 3}}}}};
 expect(serializeDeserialize(object)).toEqual(object);
 });
 
