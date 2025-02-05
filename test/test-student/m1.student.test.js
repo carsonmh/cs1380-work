@@ -7,6 +7,7 @@
 */
 
 const distribution = require('../../config.js');
+const {serialize, deserialize} = distribution.util
 
 test('(1 pts) student test', () => {
   // Fill out this test case...
@@ -55,9 +56,6 @@ test('(1 pts) student test', () => {
   expect(serializeDeserialize(f).toString()).toEqual(f.toString()); // come back to this
 });
 
-const distribution = require('../../config.js');
-const {serialize, deserialize} = distribution.util
-
 function serializeDeserialize(value) {
   return deserialize(serialize(value));
 }
@@ -78,6 +76,7 @@ test('serialize basic types', () => {
   const undefinedVal = undefined;
   expect(serializeDeserialize(undefinedVal)).toBe(undefinedVal);
 });
+
 
 test('', () => {
     const error = new Error('this is an error');

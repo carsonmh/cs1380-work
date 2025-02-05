@@ -17,7 +17,7 @@ function serialize(object) {
   }
   if (typeof object == 'function') {
     const serializedFunction = object.toString();
-    return JSON.stringify({type:'function',value:serializedFunction});
+    return JSON.stringify({type: 'function', value: serializedFunction});
   }
   if (object instanceof Array) {
     let serial = '[';
