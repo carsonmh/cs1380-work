@@ -16,6 +16,7 @@ There are several categories of tests:
   *	Regular Tests (`*.test.js`)
   *	Scenario Tests (`*.scenario.js`)
   *	Extra Credit Tests (`*.extra.test.js`)
+  * Student Tests (`*.student.test.js`) - inside `test/test-student`
 
 ### Running Tests
 
@@ -140,3 +141,6 @@ My implementation comprises `<number>` software components, totaling `<number>` 
 
 
 *Performance*: The latency of various subsystems is described in the `"latency"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
+# Results and Reflections
+
+> ...

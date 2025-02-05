@@ -1,3 +1,60 @@
+/*
+    In this file, add your own test cases that correspond to functionality introduced for each milestone.
+    You should fill out each test case so it adequately tests the functionality you implemented.
+    You are left to decide what the complexity of each test case should be, but trivial test cases that abuse this flexibility might be subject to deductions.
+
+    Imporant: Do not modify any of the test headers (i.e., the test('header', ...) part). Doing so will result in grading penalties.
+*/
+
+const distribution = require('../../config.js');
+
+test('(1 pts) student test', () => {
+  // Fill out this test case...
+  const string = 'This is a string';
+  expect(serializeDeserialize(string)).toBe(string);
+
+  const number = 2;
+  expect(serializeDeserialize(number)).toBe(number);
+
+  const bool = true;
+  expect(serializeDeserialize(bool)).toBe(bool);
+
+  const nullVal = null;
+  expect(serializeDeserialize(nullVal)).toBe(nullVal);
+
+  const undefinedVal = undefined;
+  expect(serializeDeserialize(undefinedVal)).toBe(undefinedVal);
+});
+
+
+test('(1 pts) student test', () => {
+  // Fill out this test case...
+  const date = new Date('05-04-2023');
+  expect(serializeDeserialize(date)).toEqual(date);
+});
+
+
+test('(1 pts) student test', () => {
+  // Fill out this test case...
+  const error = new Error('this is an error');
+  expect(serializeDeserialize(error)).toEqual(error);
+});
+
+test('(1 pts) student test', () => {
+  // Fill out this test case...
+  const date = new Date('05-04-2023');
+  const object = {value1: 'string', value2: undefined, value3: date};
+expect(serializeDeserialize(object)).toEqual(object);
+});
+
+test('(1 pts) student test', () => {
+  // Fill out this test case...
+  const f = (a) => {
+    return a + 1;
+  };
+  expect(serializeDeserialize(f).toString()).toEqual(f.toString()); // come back to this
+});
+
 const distribution = require('../../config.js');
 const {serialize, deserialize} = distribution.util
 
@@ -21,30 +78,6 @@ test('serialize basic types', () => {
   const undefinedVal = undefined;
   expect(serializeDeserialize(undefinedVal)).toBe(undefinedVal);
 });
-
-test('serialize more complex object', () => {
-  const date = new Date('05-04-2023');
-  expect(serializeDeserialize(date)).toEqual(date);
-});
-
-test('', () => {
-    const error = new Error('this is an error');
-  expect(serializeDeserialize(error)).toEqual(error);
-})
-
-test('', () => {
-    const date = new Date('05-04-2023');
-    const object = {value1: 'string', value2: undefined, value3: date};
-  expect(serializeDeserialize(object)).toEqual(object);
-
-})
-
-test('', () => {
-    const f = (a) => {
-        return a + 1;
-      };
-      expect(serializeDeserialize(f).toString()).toEqual(f.toString()); // come back to this
-})
 
 test('', () => {
     const error = new Error('this is an error');
