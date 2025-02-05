@@ -7,7 +7,8 @@
     Which one to be used by the tests is determined by the value of the property "useLibrary" in the package.json file.
 */
 
-const {useLibrary} = require('./package.json');
+// const {useLibrary} = require('./package.json');
+const useLibrary = false;
 
 let distribution = null;
 
