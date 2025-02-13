@@ -1,4 +1,5 @@
 const distribution = require('../../config.js');
+const { createRPC } = require('../../distribution/util/wire.js');
 
 test('(2 pts) (scenario) simple callback practice', () => {
   /* Collect the result of 3 callback services in list  */
@@ -13,6 +14,10 @@ test('(2 pts) (scenario) simple callback practice', () => {
     results.push(result);
   }
 
+  add(1, 2, storeResults)
+  add(1, 4, storeResults)
+  add(1, 6, storeResults)
+
   // ...
 
   expect(results).toEqual([3, 5, 7]);
@@ -26,23 +31,23 @@ test('(2 pts) (scenario) collect errors and successful results', (done) => {
 
   // Sample service
   const appleDeliveryService = (callback) => {
-    // ...
+    callback(null, 'good apples')
   };
 
   const pineappleDeliveryService = (callback) => {
-    // ...
+    callback(new Error('bad pineapples'), null)
   };
 
   const bananaDeliveryService = (callback) => {
-    // ...
+    callback(null, 'good bananas')
   };
 
   const peachDeliveryService = (callback) => {
-    // ...
+    callback(null, 'good peaches')
   };
 
   const mangoDeliveryService = (callback) => {
-    // ...
+    callback(new Error('bad mangoes'), null)
   };
 
   const services = [
@@ -95,10 +100,11 @@ test('(5 pts) (scenario) use rpc', (done) => {
 
   const node = {ip: '127.0.0.1', port: 9009};
 
-  // ...
+  const addOneRPC = distribution.util.wire.createRPC(
+    distribution.util.wire.toAsync(addOne));
 
   const rpcService = {
-    addOne: addOne,
+    addOne: addOneRPC,
   };
 
   distribution.node.start((server) => {

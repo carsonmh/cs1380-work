@@ -1,8 +1,9 @@
 const http = require('http');
 const url = require('url');
 const log = require('../util/log');
-
-
+const {deserialize, serialize} = require('../util/serialization');
+const routes = require('./routes');
+const { status } = require('./local');
 /*
     The start function will be called to start your node.
     It will take a callback as an argument.
@@ -16,11 +17,18 @@ const start = function(callback) {
 
     // Write some code...
 
-
+    if(req.method == 'PUT') {
     /*
       The path of the http request will determine the service to be used.
       The url will have the form: http://node_ip:node_port/service/method
     */
+
+      const reqURL = url.parse(req.url)
+
+      const path = reqURL.path.split("/")
+      const service = path[2]
+      const method = path[3]
+
 
 
     // Write some code...
@@ -41,15 +49,50 @@ const start = function(callback) {
       Our nodes expect data in JSON format.
   */
 
+      let body = ''
+      req.on('data', (chunk) => {
+        body += chunk.toString()
+      })
+
+      req.on('end', () => {
+          const message = deserialize(body)
+          /* Here, you can handle the service requests. */
+
+          // Write some code...
+
+          const serviceName = service;
+
+          routes.get(serviceName, (e, v) => {
+            if(e) {
+              res.writeHead(400, { 'Content-Type': 'text/plain' });
+              res.end(serialize(e));
+              return;
+            }
+
+            if(!v[method]) {
+              res.writeHead(400, { 'Content-Type': 'text/plain' })
+              res.end(serialize(new Error("bad method")))
+              return;
+            }
+
+            v[method](message[0], (e, v) => {
+              if (!e) {
+                global.moreStatus.counts += 1
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end(serialize(v));
+              }else {
+                res.writeHead(400, { 'Content-Type': 'text/plain' });
+                res.end(serialize(e));
+              }
+            })
+          })
+
+          // res.writeHead(200, { 'Content-Type': 'text/plain' });
+      })
+
     // Write some code...
 
-
-    /* Here, you can handle the service requests. */
-
-    // Write some code...
-
-    const serviceName = service;
-
+    }
 
     // Write some code...
   });
@@ -75,6 +118,7 @@ const start = function(callback) {
   server.on('error', (error) => {
     // server.close();
     log(`Server error: ${error}`);
+    console.log(error)
     throw error;
   });
 };
