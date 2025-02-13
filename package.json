@@ -3,7 +3,7 @@
   "version": "0.1.7",
   "description": "A library for building distributed systems.",
   "main": "distribution.js",
-  "useLibrary": true,
+  "useLibrary": false,
   "directories": {
     "test": "test"
   },
@@ -46,7 +46,7 @@
   "report-m2": {
     "comm-latency": {
       "dev": [0.026, 0.158],
-      "aws": []
+      "aws": [0.454]
     }
   }
 }
