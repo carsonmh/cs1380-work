@@ -11,7 +11,6 @@ global.moreStatus = {
 status.get = function(configuration, callback) {
   callback = callback || function() { };
   // TODO: implement remaining local status items
-
   if(configuration == 'nid'){
     callback(null, global.moreStatus.nid);
     return;
@@ -44,15 +43,17 @@ status.get = function(configuration, callback) {
 };
 
 
-status.spawn = function(configuration, callback) {
-  // callback(null, {ip: '127.0.0.1', port: 9090})
-  // const status = require('@brown-ds/distribution').local.status
-  // status.spawn(configuration, callback)
-};
+// status.spawn = function(configuration, callback) {
+//   const status = require('@brown-ds/distribution').local.status
+//   status.spawn(configuration, callback)
 
-status.stop = function(callback) {
-  // const status = require('@brown-ds/distribution').local.status
-  // status.stop(configuration, callback)
-};
+// };
+
+// status.stop = function(callback) {
+//   const status = require('@brown-ds/distribution').local.status
+//   status.stop(configuration, callback)
+// };
+status.spawn = require('@brown-ds/distribution').local.status.spawn
+status.stop = require('@brown-ds/distribution').local.status.stop
 
 module.exports = status;

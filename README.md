@@ -176,3 +176,33 @@ My implementation comprises `<number>` software components, totaling `<number>` 
 ## Key Feature
 
 > How would you explain the implementation of `createRPC` to someone who has no background in computer science — i.e., with the minimum jargon possible?
+
+I would say that it is a computation that one computer tells another computer to do. Then other computer then sends back the result. 
+
+# M3: Node Groups & Gossip Protocols
+
+
+## Summary
+
+> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M3 (`hours`) and the lines of code per task.
+
+
+My implementation comprises 6 new software components, totaling 300 added lines of code over the previous implementation. Key challenges included first building out the logic for routes. There were a lot of particulars to be considered with the inputs and errors to be handled so it was a challenge debugging that. Another key challenge was that I had some trouble with the groups put method. I wasn't sure where I was supposed to store the different groups. I ended up splitting it up into distribution methods and local group hashmap. 
+
+
+## Correctness & Performance Characterization
+
+> Describe how you characterized the correctness and performance of your implementation
+
+I ran tests and looked through the code to ensure correctness
+
+*Correctness* -- number of tests and time they take.
+
+
+*Performance* -- spawn times (all students) and gossip (lab/ec-only).
+
+
+## Key Feature
+
+> What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?
+Because this would lead to scalability issues. There would be way too many operations happening at a large # of nodes so this wouldn't be sustainable. 

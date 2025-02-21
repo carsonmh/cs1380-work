@@ -1,9 +1,11 @@
 const { getID } = require("../util/id");
 
 function findLocal(functionPointer, ...args) {
-    const id = getID(functionPointer)
-    const functionResult = toLocal[id]
-    functionResult(...args)
+    // const id = functionPointer
+    // console.log('running')
+    // const functionResult = toLocal[id]
+    // functionResult(...args)
+    return global.toLocal
 }
 
-module.exports = {findLocal}
+module.exports = { findLocal }

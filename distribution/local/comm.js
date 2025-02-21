@@ -19,11 +19,11 @@ const http = require('node:http');
  * @return {void}
  */
 function send(message, remote, callback) {
-    const messageString = serialize(message);
+    const messageString = serialize(message); 
     const options = {
         hostname: remote.node.ip,
         port: remote.node.port,
-        path: `/local/${remote.service}/${remote.method}`,
+        path: `/${remote.gid ? remote.gid : "local"}/${remote.service}/${remote.method}`,
         method: 'PUT',
       };
 
@@ -38,11 +38,17 @@ function send(message, remote, callback) {
             const deserializedData = deserialize(data)
             if(deserializedData instanceof Error) {
                 callback(deserializedData, null)
+            }else if (Array.isArray(deserializedData)) {
+                callback(deserializedData[0], deserializedData[1])
             }else {
                 callback(null, deserializedData);
             }
         });
     })
+
+    req.on('error', (e) => {
+        callback(e, null);
+    });
 
     req.write(messageString)
     req.end()

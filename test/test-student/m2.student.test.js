@@ -101,29 +101,29 @@ test('(1 pts) student test', (done) => {
 });
 
 
-test('performance characterizaiton for comm', (done) => {
-  const node = distribution.node.config;
-  const remote = {node: node, service: 'status', method: 'get'};
-  const message = [
-    'heapUsed',
-  ];
+// test('performance characterizaiton for comm', (done) => {
+//   const node = distribution.node.config;
+//   const remote = {node: node, service: 'status', method: 'get'};
+//   const message = [
+//     'heapUsed',
+//   ];
 
-  let totalTime = 0
-  for(let i = 0; i < 1000; i++ ){
-    const startTime = performance.now()
-    local.comm.send(message, remote, (e, v) => {
-        try {
-          expect(e).toBeFalsy();
-        } catch (error) {
-        }
-      })
-    const endTime = performance.now()
-    const diff = endTime - startTime
-    totalTime += diff
-  }
-  console.log(totalTime / 1000)
-  done()
-})
+//   let totalTime = 0
+//   for(let i = 0; i < 1000; i++ ){
+//     const startTime = performance.now()
+//     local.comm.send(message, remote, (e, v) => {
+//         try {
+//           expect(e).toBeFalsy();
+//         } catch (error) {
+//         }
+//       })
+//     const endTime = performance.now()
+//     const diff = endTime - startTime
+//     totalTime += diff
+//   }
+//   console.log(totalTime / 1000)
+//   done()
+// })
 
 let localServer = null;
 

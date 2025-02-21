@@ -28,11 +28,11 @@ function serialize(object) {
       serial += JSON.stringify(serialize(obj));
     }
     serial += ']';
-
+    // TODO: change this
     return JSON.stringify({type: 'array', value: serial});
   }
   if (object instanceof Error) {
-    return `{"type":"error","value":"${object.message}"}`;
+    return JSON.stringify({type:"error",value:object});
   }
   if (object instanceof Date) {
     return `{"type":"date","value":"${object.toISOString()}"}`;
@@ -65,10 +65,9 @@ function deserialize(string) {
       const func = eval(`(${obj.value})`);
       return func;
     case 'array':
-      const arr = JSON.parse(obj.value);
       const retVal = [];
-      for (const item of arr) {
-        retVal.push(deserialize(item));
+      for (const value of JSON.parse(obj.value)) {
+        retVal.push(deserialize(value));
       }
       return retVal;
     case 'error':

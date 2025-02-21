@@ -21,9 +21,49 @@ function comm(config) {
    * @param {Callback} callback
    */
   function send(message, configuration, callback) {
+    let response = {}
+    let errors = {}
+    let count = 0
+
+    distribution.local.groups.get(context.gid, (e, group) => {
+      if(e) {
+        callback(null, e)
+        return
+      }
+      for(const [key, value] of Object.entries(group)) {
+        if(!value.ip) {
+          continue
+        }
+
+        const remote = { node: value, service: configuration.service, method: configuration.method }
+        distribution.local.comm.send(message, remote, (e, v) => {
+          if(e) {
+            errors[key] = e
+          }else {
+            response[key] = v
+          }
+          count++
+
+          if (count >= totalInGroup(group)) {
+            callback(errors, response)
+          }
+        })
+      }
+    })
   }
 
   return {send};
 };
+
+function totalInGroup(group) {
+  let count =0 
+  for(const [key, value] of Object.entries(group)) {
+    if(value.ip) {
+      count += 1
+    }
+  }
+
+  return count
+}
 
 module.exports = comm;

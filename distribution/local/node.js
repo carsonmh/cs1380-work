@@ -16,7 +16,6 @@ const start = function(callback) {
     /* Your server will be listening for PUT requests. */
 
     // Write some code...
-
     if(req.method == 'PUT') {
     /*
       The path of the http request will determine the service to be used.
@@ -26,12 +25,10 @@ const start = function(callback) {
       const reqURL = url.parse(req.url)
 
       const path = reqURL.path.split("/")
+      const groupId = path[1]
       const service = path[2]
       const method = path[3]
 
-
-
-    // Write some code...
 
 
     /*
@@ -49,61 +46,62 @@ const start = function(callback) {
       Our nodes expect data in JSON format.
   */
 
-      let body = ''
-      req.on('data', (chunk) => {
-        body += chunk.toString()
-      })
-
-    let body = [];
-
+    let body = ''
     req.on('data', (chunk) => {
-    });
+      body += chunk.toString()
+      // console.log(deserialize(body))
+    })
+
 
     req.on('end', () => {
-      req.on('end', () => {
-          const message = deserialize(body)
-          /* Here, you can handle the service requests.
+      const message = deserialize(body)
+      /* Here, you can handle the service requests.
       Use the local routes service to get the service you need to call.
       You need to call the service with the method and arguments provided in the request.
       Then, you need to serialize the result and send it back to the caller.
       */
+      let serviceName = service;
+      if(groupId != 'local') {
+        serviceName = {gid: groupId, service: serviceName}
+      }
 
-          // Write some code...
+      // console.log(serviceName, path, message)
+      routes.get(serviceName, (e, v) => {
+        if(e) {
+          res.writeHead(400, { 'Content-Type': 'text/plain' });
+          res.end(serialize(e));
+          return;
+        }
 
-          const serviceName = service;
+        if(!v[method]) {
+          res.writeHead(400, { 'Content-Type': 'text/plain' })
+          res.end(serialize(Error("bad method")))
+          return;
+        }
+        v[method](...message, (e, v) => {
+          if (!e) {
+            global.moreStatus.counts += 1
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(serialize(v));
 
-          routes.get(serviceName, (e, v) => {
-            if(e) {
-              res.writeHead(400, { 'Content-Type': 'text/plain' });
-              res.end(serialize(e));
-              return;
-            }
-
-            if(!v[method]) {
-              res.writeHead(400, { 'Content-Type': 'text/plain' })
-              res.end(serialize(new Error("bad method")))
-              return;
-            }
-
-            v[method](message[0], (e, v) => {
-              if (!e) {
-                global.moreStatus.counts += 1
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end(serialize(v));
-              }else {
-                res.writeHead(400, { 'Content-Type': 'text/plain' });
-                res.end(serialize(e));
-              }
-            })
-          })
-
-          // res.writeHead(200, { 'Content-Type': 'text/plain' });
+          }else if(e&&v) {
+            global.moreStatus.counts += 1
+            res.writeHead(200, { 'Content-Type': 'text/plain' })
+            res.end(serialize([e, v]))
+          }else {
+            res.writeHead(400, { 'Content-Type': 'text/plain' });
+            res.end(serialize(e));
+          }
+        })
       })
-});
+
+        // res.writeHead(200, { 'Content-Type': 'text/plain' });
+    })
     }
+  })
+
 
     // Write some code...
-  });
 
 
   /*

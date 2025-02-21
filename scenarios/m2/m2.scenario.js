@@ -148,4 +148,4 @@ test('(5 pts) (scenario) use rpc', (done) => {
           });
     });
   });
-});
+}});

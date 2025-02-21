@@ -22,7 +22,6 @@ const n6 = {ip: '127.0.0.1', port: 9006};
 test('(2 pts) all.comm.send(status.get(nid))', (done) => {
   const nids = Object.values(mygroupGroup).map((node) => id.getNID(node));
   const remote = {service: 'status', method: 'get'};
-
   distribution.mygroup.comm.send(['nid'], remote, (e, v) => {
     expect(e).toEqual({});
     try {
@@ -46,7 +45,6 @@ test('(2 pts) local.comm.send(all.status.get(nid))', (done) => {
     // from local node, run mygroup.status.get() on n5 via send()
     distribution.local.comm.send(['nid'], remote, (e, v) => {
       expect(e).toEqual({});
-
       try {
         expect(Object.values(v).length).toBe(nids.length);
         expect(Object.values(v)).toEqual(expect.arrayContaining(nids));
@@ -76,10 +74,10 @@ test('(2 pts) all.comm.send(status.get(random))', (done) => {
   });
 });
 
+
 beforeAll((done) => {
   // First, stop the nodes if they are running
   const remote = {service: 'status', method: 'stop'};
-
   remote.node = n1;
   distribution.local.comm.send([], remote, (e, v) => {
     remote.node = n2;
@@ -100,13 +98,13 @@ beforeAll((done) => {
     });
   });
 
+
   const startNodes = () => {
     mygroupGroup[id.getSID(n1)] = n1;
     mygroupGroup[id.getSID(n2)] = n2;
     mygroupGroup[id.getSID(n3)] = n3;
     mygroupGroup[id.getSID(n4)] = n4;
     mygroupGroup[id.getSID(n5)] = n5;
-
 
     const groupInstantiation = () => {
       // Create the groups
@@ -115,7 +113,6 @@ beforeAll((done) => {
             done();
           });
     };
-
 
     // Now, start the nodes listening node
     distribution.node.start((server) => {
@@ -137,6 +134,7 @@ beforeAll((done) => {
       });
     }); ;
   };
+
 });
 
 afterAll((done) => {

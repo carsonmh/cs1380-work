@@ -69,7 +69,8 @@ test('(2 pts) all.routes.put(echo)', (done) => {
         done(error);
         return;
       }
-      distribution.local.comm.send([{service: 'echo'}], r2, (e, v) => {
+      distribution.local.comm.send([{service: 'echo'}], r2, (e, v) => 
+      {
         try {
           expect(e).toBeFalsy();
           expect(v.echo()).toBe('echo!');

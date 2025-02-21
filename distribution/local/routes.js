@@ -1,5 +1,8 @@
 /** @typedef {import("../types").Callback} Callback */
 
+const comm = require("../all/comm");
+const { groups } = require("./local");
+
 let hashMap = {}
 /**
  * @param {string} configuration
@@ -7,11 +10,32 @@ let hashMap = {}
  * @return {void}
  */
 function get(configuration, callback) {
-    if (!hashMap[configuration]) {
-        callback(new Error("this is an error. Config: " + configuration), null)
-        return;
+    const gid = configuration.gid
+    if(configuration.service) {
+        configuration = configuration.service
     }
-    callback(null, hashMap[configuration])
+
+    if(gid && gid != "local") {
+        if(!distribution[gid]) {
+            callback(new Error("GID not found. Config gid: " + gid), null)
+            return
+        }
+
+        callback(null, distribution[gid][configuration])
+        return
+    }
+
+    if (!hashMap[configuration] && !hashMap[configuration]) {
+        console.log(configuration, hashMap, hashMap[configuration])
+        callback(Error("error"), null)
+        return
+    }
+    
+    if(configuration == 'rpc') {
+        callback(null, hashMap[configuration].findLocal())
+    }else {
+        callback(null, hashMap[configuration])
+    }
 }
 
 /**
@@ -22,7 +46,7 @@ function get(configuration, callback) {
  */
 function put(service, configuration, callback) {
     hashMap[configuration] = service
-    if (callback != null && callback != undefined) {
+    if (callback) {
         callback(null, hashMap[configuration]) // TODO: This or pass something else?
     }
 }
