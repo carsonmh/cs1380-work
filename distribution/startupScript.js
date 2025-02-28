@@ -1,5 +1,5 @@
 function startupScript() {
-    const distribution = require('/usr/src/app/stencil/config')
+    const distribution = require('/home/ubuntu/cs1380-work/config')
     let kvMap = {};
 
     distribution.local.groups.put('all', {
