@@ -43,17 +43,16 @@ status.get = function(configuration, callback) {
 };
 
 
-// status.spawn = function(configuration, callback) {
-//   const status = require('@brown-ds/distribution').local.status
-//   status.spawn(configuration, callback)
+status.spawn = function(configuration, callback) {
+  // console.log(configuration, callback.toString())
+  const status = require('@brown-ds/distribution').local.status
+  status.spawn(configuration, callback)
 
-// };
+};
 
-// status.stop = function(callback) {
-//   const status = require('@brown-ds/distribution').local.status
-//   status.stop(configuration, callback)
-// };
-status.spawn = require('@brown-ds/distribution').local.status.spawn
-status.stop = require('@brown-ds/distribution').local.status.stop
+status.stop = function(callback) {
+  const status = require('@brown-ds/distribution').local.status
+  status.stop(callback)
+};
 
 module.exports = status;

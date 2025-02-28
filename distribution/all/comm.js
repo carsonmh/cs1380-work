@@ -27,7 +27,7 @@ function comm(config) {
 
     distribution.local.groups.get(context.gid, (e, group) => {
       if(e) {
-        callback(null, e)
+        callback(e, null)
         return
       }
       for(const [key, value] of Object.entries(group)) {

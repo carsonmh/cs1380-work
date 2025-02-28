@@ -14,7 +14,7 @@ const status = function(config) {
         }else {
           callback(e, v)
         }
-      })
+    })
     },
 
     spawn: (configuration, callback) => {

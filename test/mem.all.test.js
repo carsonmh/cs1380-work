@@ -3,6 +3,7 @@ const id = distribution.util.id;
 
 jest.spyOn(process, 'exit').mockImplementation((n) => { });
 
+
 test('(1 pts) all.mem.put(jcarb)/mygroup.mem.get(jcarb)', (done) => {
   const user = {first: 'John', last: 'Carberry'};
   const key = 'jcarbmpmg';

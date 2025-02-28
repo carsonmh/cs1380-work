@@ -197,12 +197,13 @@ My implementation comprises 6 new software components, totaling 300 added lines 
 I ran tests and looked through the code to ensure correctness
 
 *Correctness* -- number of tests and time they take.
-
+5 tests - around 30 milliseconds
 
 *Performance* -- spawn times (all students) and gossip (lab/ec-only).
-
+average of 27ms per spawn call
 
 ## Key Feature
 
 > What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?
+
 Because this would lead to scalability issues. There would be way too many operations happening at a large # of nodes so this wouldn't be sustainable. 

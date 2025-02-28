@@ -60,7 +60,7 @@ test('(1 pts) rendezvousHash()', (done) => {
 
   const hash = id.rendezvousHash(kid, nids);
   const expectedHash = '2f29d190dcd1d1e835881ecef3cd06edfb89db1d81676ef52587d4065e24b915';
-
+  
   try {
     expect(expectedHash).toBeTruthy();
     expect(hash).toBe(expectedHash);

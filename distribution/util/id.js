@@ -55,10 +55,34 @@ function naiveHash(kid, nids) {
 }
 
 function consistentHash(kid, nids) {
+  let newList = []
+  let map = {}
+  for(const nid of nids) {
+    newList.push(idToNum(nid))
+    map[idToNum(nid)] = nid
+  }
+  newList.push(idToNum(kid))
+  newList.sort()
+  let ind = newList.indexOf(idToNum(kid))
+  if(ind == newList.length - 1) {
+    ind = 0
+  }else {
+    ind += 1
+  }
+  const val = newList[ind]
+  return map[val]
 }
 
 
 function rendezvousHash(kid, nids) {
+  let newList = [];
+  let map = {}
+  for(let i = 0; i < nids.length; i++ ) {
+    map[idToNum(getID(kid + nids[i]))] = nids[i]
+    newList.push(idToNum(getID(kid + nids[i])))
+  }
+  newList.sort()
+  return map[newList[newList.length - 1]]
 }
 
 module.exports = {

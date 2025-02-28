@@ -49,6 +49,7 @@ function serialize(object) {
 
 
 function deserialize(string) {
+
   const obj = JSON.parse(string);
   switch (obj.type) {
     case 'number':

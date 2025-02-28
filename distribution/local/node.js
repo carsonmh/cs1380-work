@@ -65,32 +65,32 @@ const start = function(callback) {
         serviceName = {gid: groupId, service: serviceName}
       }
 
-      // console.log(serviceName, path, message)
-      routes.get(serviceName, (e, v) => {
+      routes.get(serviceName, (e, returnedService) => {
         if(e) {
           res.writeHead(400, { 'Content-Type': 'text/plain' });
           res.end(serialize(e));
           return;
         }
 
-        if(!v[method]) {
+        if(!returnedService[method]) {
           res.writeHead(400, { 'Content-Type': 'text/plain' })
           res.end(serialize(Error("bad method")))
           return;
         }
-        v[method](...message, (e, v) => {
+
+        returnedService[method](...message, (e, v) => {
           if (!e) {
             global.moreStatus.counts += 1
             res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end(serialize(v));
+            res.end(serialize([null, v]));
 
-          }else if(e&&v) {
+          }else if(e && v) {
             global.moreStatus.counts += 1
             res.writeHead(200, { 'Content-Type': 'text/plain' })
             res.end(serialize([e, v]))
           }else {
             res.writeHead(400, { 'Content-Type': 'text/plain' });
-            res.end(serialize(e));
+            res.end(serialize([e, null]));
           }
         })
       })
@@ -122,7 +122,7 @@ const start = function(callback) {
   server.on('error', (error) => {
     // server.close();
     log(`Server error: ${error}`);
-    console.log(error)
+    // console.log(error)
     throw error;
   });
 };

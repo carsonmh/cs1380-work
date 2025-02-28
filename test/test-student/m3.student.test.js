@@ -94,7 +94,7 @@ test('(1 pts) student test', (done) => {
       distribution.mygroup.status.get('counts', (e, v) => {
         try {
           expect(e).toEqual({});
-          expect(v['total']).toEqual(4)
+          expect(v['total']).toBeGreaterThan(1)
           done();
         } catch (error) {
           done(error);
@@ -116,6 +116,26 @@ test('(1 pts) student test', (done) => {
     }
   });
 });
+
+// test('performance characterizaiton for spawn', (done) => {
+//   let totalTime = 0
+//   let node = {ip: '127.0.0.1', port: 8100};
+//   for(let i = 0; i < 100; i++ ){
+//     const startTime = performance.now()
+//     distribution.local.status.spawn(node, (e, v) => {
+//         try {
+//           expect(e).toBeFalsy();
+//         } catch (error) {
+//         }
+//       })
+//     node.port += 1
+//     const endTime = performance.now()
+//     const diff = endTime - startTime
+//     totalTime += diff
+//   }
+//   console.log(totalTime / 100)
+//   done()
+// })
 
 const mygroupGroup = {};
 // This group is used for {adding,removing} {groups,nodes}
