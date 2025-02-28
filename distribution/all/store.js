@@ -25,7 +25,6 @@ function store(config) {
         const node = id.naiveHash(kid, Object.keys(group))
         const remote = { node: group[node], service: 'store', method: 'get'}
         distribution.local.comm.send([{key: configuration, gid: context.gid}], remote, (e, v) => {
-          console.log(e, v)
           callback(e, v)
         })
       })
