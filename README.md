@@ -207,3 +207,32 @@ average of 27ms per spawn call
 > What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?
 
 Because this would lead to scalability issues. There would be way too many operations happening at a large # of nodes so this wouldn't be sustainable. 
+
+# M4: Distributed Storage
+
+
+## Summary
+
+> Summarize your implementation, including key challenges you encountered
+My implementation does mem and store for the distributed system. One challenge I encountered was that there were issues setting up the store, as I wasn't sure how to associate different files with groups. I ended up adding the group in the name of the file and this fixed the issue. There weren't any other issues with my implementation. 
+
+Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M4 (`hours`) and the lines of code per task.
+
+
+## Correctness & Performance Characterization
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness* -- number of tests and time they take.
+5 tests, they take around 10 ms to complete
+
+
+*Performance* -- insertion and retrieval.
+Performance is found in the package.json. 
+
+## Key Feature
+
+> Why is the `reconf` method designed to first identify all the keys to be relocated and then relocate individual objects instead of fetching all the objects immediately and then pushing them to their corresponding locations?
+
+Because fetching all objects and then pushing them to the corresponding location would require a significant time sink and isn't required for what reconf is trying to do. Also, not all of them need to be pushed, so this would be a waste. 

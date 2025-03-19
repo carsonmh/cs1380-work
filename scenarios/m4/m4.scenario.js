@@ -21,6 +21,10 @@ test('(5 pts) (scenario) use the local store', (done) => {
       }
     });
   }
+
+  distribution.local.store.put(user, key, (e, v) => {
+    check()
+  })
 });
 
 
@@ -39,8 +43,8 @@ test('(5 pts) (scenario) hash functions return different nodes', () => {
     util.id.getNID({ip: '192.168.0.4', port: 8000}),
     util.id.getNID({ip: '192.168.0.5', port: 8000}),
   ];
-  let key1 = '?';
-  let key2 = '?';
+  let key1 = '1';
+  let key2 = '4';
 
 
   const kid1 = util.id.getID(key1);
@@ -67,7 +71,7 @@ test('(5 pts) (scenario) hash functions return the same node', () => {
     util.id.getNID({ip: '192.168.0.4', port: 8000}),
   ];
 
-  let key = '?';
+  let key = '7'
 
   const kid = util.id.getID(key);
 
@@ -97,37 +101,43 @@ test('(5 pts) (scenario) use mem.reconf', (done) => {
   // Create a group with any number of nodes
   const mygroupGroup = {};
   mygroupGroup[id.getSID(distribution.node.config)] = distribution.node.config; // Adding the current node to the group
+  mygroupGroup[id.getSID(n1)] = n1;
   // Add more nodes to the group...
 
   // Create a set of items and corresponding keys...
   const keysAndItems = [
     {key: 'a', item: {first: 'Josiah', last: 'Carberry'}},
+    {key: 'b', item: {first: 'Jonas', last: 'Carb'}},
+    {key: 'c', item: {first: 'Josh', last: 'Berry'}},
   ];
 
   // Experiment with different hash functions...
-  const config = {gid: 'mygroup', hash: '?'};
+  const config = {gid: 'mygroup', hash: id.naiveHash};
 
   distribution.local.groups.put(config, mygroupGroup, (e, v) => {
     // Now, place each one of the items you made inside the group...
-    distribution.mygroup.mem.put(keysAndItems[0].item, keysAndItems[0].key, (e, v) => {
-        // We need to pass a copy of the group's
-        // nodes before the changes to reconf()
-        const groupCopy = {...mygroupGroup};
+    for(let i = 0; i < 3; i++) {
+      distribution.mygroup.mem.put(keysAndItems[0].item, keysAndItems[0].key, (e, v) => {
+          // We need to pass a copy of the group's
+          // nodes before the changes to reconf()
+          const groupCopy = {...mygroupGroup};
 
-        // Remove a node from the group...
-        let toRemove = '?';
-        distribution.mygroup.groups.rem(
-            'mygroup',
-            id.getSID(toRemove),
-            (e, v) => {
-            // We call `reconf()` on the distributed mem service. This will place the items in the remaining group nodes...
-              distribution.mygroup.mem.reconf(groupCopy, (e, v) => {
-              // Fill out the `checkPlacement` function (defined below) based on how you think the items will have been placed after the reconfiguration...
-                checkPlacement();
+          // Remove a node from the group...
+          let toRemove = keysAndItems[i].key;
+          distribution.mygroup.groups.rem(
+              'mygroup',
+              id.getSID(toRemove),
+              (e, v) => {
+              // We call `reconf()` on the distributed mem service. This will place the items in the remaining group nodes...
+                distribution.mygroup.mem.reconf(groupCopy, (e, v) => {
+                // Fill out the `checkPlacement` function (defined below) based on how you think the items will have been placed after the reconfiguration...
+                  checkPlacement();
+                });
               });
-            });
-    });
+      });
+    }
   });
+
 
   // This function will be called after we put items in nodes
   // Send the right messages to the right nodes to check if the items are in the right place...
@@ -137,7 +147,7 @@ test('(5 pts) (scenario) use mem.reconf', (done) => {
     ];
 
     // Based on where you think the items should be, send the messages to the right nodes...
-    const remote = {node: '?', service: 'mem', method: 'get'};
+    const remote = {node: distribution.node.config, service: 'mem', method: 'get'};
     distribution.local.comm.send(messages[0], remote, (e, v) => {
       try {
         expect(e).toBeFalsy();
@@ -152,6 +162,7 @@ test('(5 pts) (scenario) use mem.reconf', (done) => {
     });
   };
 });
+
 
 let localServer = null;
 

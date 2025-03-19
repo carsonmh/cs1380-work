@@ -92,5 +92,17 @@
     "loc-t5": 35,
     "loc-t6": 32
 
+  },
+  "report-m4": {
+    "hours": 10, 
+    "insertion-latency": 0.61,
+    "insertion-throughput": 6.1,
+    "retrieval-latency": 0.24,
+    "retrieval-throughput": 2.4,
+    "loc-t1": 30,
+    "loc-t2": 125,
+    "loc-t3": 20, 
+    "loc-t4": 42,
+    "loc-t5": 50
   }
 }

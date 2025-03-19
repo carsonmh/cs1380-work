@@ -7,30 +7,86 @@
 */
 
 const distribution = require('../../config.js');
+const id = require('../../distribution/util/id.js')
 
 test('(1 pts) student test', (done) => {
   // Fill out this test case...
-  done(new Error('Not implemented'));
+  const user = {first: 'Gus', last: 'Fring'};
+
+  distribution.local.mem.put(user, null, (e, v) => {
+    distribution.local.mem.del(id.getID(user), (e, v) => {
+      try {
+        expect(e).toBeFalsy();
+        expect(v).toBe(user);
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
+  });
 });
 
 
 test('(1 pts) student test', (done) => {
   // Fill out this test case...
-  done(new Error('Not implemented'));
+  const user = {first: 'Gus', last: 'Fring'};
+
+  distribution.local.mem.get(id.getID(user), (e, v) => {
+      try {
+        expect(e).toBeTruthy();
+        done();
+      } catch (error) {
+        done(error);
+      }
+  });
 });
 
 
 test('(1 pts) student test', (done) => {
   // Fill out this test case...
-  done(new Error('Not implemented'));
+  const user = {first: 'Gus', last: 'Fring'};
+
+  distribution.local.mem.put(user, null, (e, v) => {
+    distribution.local.mem.put(user, null, (e, v) => {
+      try {
+        expect(e).toBeFalsy();
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
+  });
 });
 
 test('(1 pts) student test', (done) => {
   // Fill out this test case...
-  done(new Error('Not implemented'));
+  const user = {first: 'Gus', last: 'Fring'};
+
+  distribution.local.mem.get(id.getID(user), (e, v) => {
+    distribution.local.mem.put( user, null, (e, v) => {
+      try {
+        expect(e).toBeFalsy();
+        expect(v).toBe(user);
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
+  });
 });
 
 test('(1 pts) student test', (done) => {
   // Fill out this test case...
-  done(new Error('Not implemented'));
+  const user = {first: 'Gus', last: 'Fring'};
+
+  distribution.local.mem.del(id.getID(user), (e, v) => {
+    distribution.local.mem.get(id.getID(user), (e, v) => {
+      try {
+        expect(e).toBeTruthy();
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
+  });
 });
