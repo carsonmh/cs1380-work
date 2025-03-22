@@ -41,7 +41,7 @@ function put(state, configuration, callback) {
     return
   }
   
-  const path = `store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`
+  const path = `store/${distribution.node.config.port}/${gid}/${key}.txt`
 
 
   fs.mkdir(`store/${distribution.node.config.port}`, (e, v) => {
@@ -75,13 +75,13 @@ function get(configuration, callback) {
     fs.readdir(`store/${distribution.node.config.port}/${gid}`, (err, files) => {
       for (const file of files) {
         const filePath = path.join(`store/${distribution.node.config.port}/${gid}`, file);
-        const key = filePath.split('-')[1].split('.')[0]
+        const key = filePath.split('/')[3].split('.')[0]
         arr.push(key)
       }
     callback(null, arr)
     })
   }else {
-    fs.readFile(`store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`, (err, obj) => {
+    fs.readFile(`store/${distribution.node.config.port}/${gid}/${key}.txt`, (err, obj) => {
       if (err) {
         callback(new Error(err), null)
       } else {
@@ -102,11 +102,11 @@ function del(configuration, callback) {
     gid = 'local'
   }
 
-  fs.readFile(`store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`, (err, obj) => {
+  fs.readFile(`store/${distribution.node.config.port}/${gid}/${key}.txt`, (err, obj) => {
     if (err) {
       callback(new Error(err), null)
     } else {
-      fs.unlink(`store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`, (err) => {
+      fs.unlink(`store/${distribution.node.config.port}/${gid}/${key}.txt`, (err) => {
         if (err) {
           callback(new Error(err), null)
         } else {

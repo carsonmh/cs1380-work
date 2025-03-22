@@ -27,7 +27,7 @@ function store(config) {
           callback(e, null)
           return
         }
-        const node = id.naiveHash(kid, Object.keys(group))
+        const node = id.consistentHash(kid, Object.keys(group))
         const remote = { node: group[node], service: 'store', method: 'get'}
         distribution.local.comm.send([{key: configuration, gid: context.gid}], remote, (e, v) => {
           callback(e, v)
@@ -42,7 +42,7 @@ function store(config) {
           callback(e, null)
           return
         }
-        const node = id.naiveHash(kid, Object.keys(group))
+        const node = id.consistentHash(kid, Object.keys(group))
         // ECONNREFUSED: because the node config is wrong
         const remote = { node: group[node], service: 'store', method: 'put'}
         distribution.local.comm.send([state, {key: configuration, gid: context.gid}], remote, (e, v) => {
@@ -62,7 +62,7 @@ function store(config) {
           callback(e, null)
           return
         }
-        const node = id.naiveHash(kid, Object.keys(group))
+        const node = id.consistentHash(kid, Object.keys(group))
         const remote = { node: group[node], service: 'store', method: 'del'}
         distribution.local.comm.send([{key: configuration, gid: context.gid}], remote, (e, v) => {
           if(e) {

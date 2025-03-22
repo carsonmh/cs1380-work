@@ -85,172 +85,262 @@ test('(0 pts) (scenario) all.mr:ncdc', (done) => {
   });
 });
 
-// test('(10 pts) (scenario) all.mr:dlib', (done) => {
-// /*
-//    Implement the map and reduce functions.
-//    The map function should parse the string value and return an object with the word as the key and the value as 1.
-//    The reduce function should return the count of each word.
-// */
+test('(10 pts) (scenario) all.mr:dlib', (done) => {
+/*
+   Implement the map and reduce functions.
+   The map function should parse the string value and return an object with the word as the key and the value as 1.
+   The reduce function should return the count of each word.
+*/
 
-//   const mapper = (key, value) => {
-//   };
+  const mapper = (key, value) => {
+    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+    const out = [];
+    words.forEach((word) => {
+      const o = {};
+      o[word] = 1;
+      out.push(o);
+    });
+    return out;
+  };
 
-//   const reducer = (key, values) => {
-//   };
+  const reducer = (key, values) => {
+    const out = {};
+    out[key] = values.reduce((sum, v) => sum + v, 0);
+    return out;
+  };
 
-//   const dataset = [
-//     {'b1-l1': 'It was the best of times, it was the worst of times,'},
-//     {'b1-l2': 'it was the age of wisdom, it was the age of foolishness,'},
-//     {'b1-l3': 'it was the epoch of belief, it was the epoch of incredulity,'},
-//     {'b1-l4': 'it was the season of Light, it was the season of Darkness,'},
-//     {'b1-l5': 'it was the spring of hope, it was the winter of despair,'},
-//   ];
+  const dataset = [
+    {'b1-l1': 'It was the best of times, it was the worst of times,'},
+    {'b1-l2': 'it was the age of wisdom, it was the age of foolishness,'},
+    {'b1-l3': 'it was the epoch of belief, it was the epoch of incredulity,'},
+    {'b1-l4': 'it was the season of Light, it was the season of Darkness,'},
+    {'b1-l5': 'it was the spring of hope, it was the winter of despair,'},
+  ];
 
-//   const expected = [
-//     {It: 1}, {was: 10},
-//     {the: 10}, {best: 1},
-//     {of: 10}, {'times,': 2},
-//     {it: 9}, {worst: 1},
-//     {age: 2}, {'wisdom,': 1},
-//     {'foolishness,': 1}, {epoch: 2},
-//     {'belief,': 1}, {'incredulity,': 1},
-//     {season: 2}, {'Light,': 1},
-//     {'Darkness,': 1}, {spring: 1},
-//     {'hope,': 1}, {winter: 1},
-//     {'despair,': 1},
-//   ];
+  const expected = [
+    {It: 1}, {was: 10},
+    {the: 10}, {best: 1},
+    {of: 10}, {'times,': 2},
+    {it: 9}, {worst: 1},
+    {age: 2}, {'wisdom,': 1},
+    {'foolishness,': 1}, {epoch: 2},
+    {'belief,': 1}, {'incredulity,': 1},
+    {season: 2}, {'Light,': 1},
+    {'Darkness,': 1}, {spring: 1},
+    {'hope,': 1}, {winter: 1},
+    {'despair,': 1},
+  ];
 
-//   const doMapReduce = (cb) => {
-//     distribution.dlib.store.get(null, (e, v) => {
-//       try {
-//         expect(v.length).toBe(dataset.length);
-//       } catch (e) {
-//         done(e);
-//       }
+  const doMapReduce = (cb) => {
+    distribution.dlib.store.get(null, (e, v) => {
+      try {
+        expect(v.length).toBe(dataset.length);
+      } catch (e) {
+        done(e);
+      }
 
-//       distribution.dlib.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
-//         try {
-//           expect(v).toEqual(expect.arrayContaining(expected));
-//           done();
-//         } catch (e) {
-//           done(e);
-//         }
-//       });
-//     });
-//   };
+      distribution.dlib.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+        try {
+          expect(v).toEqual(expect.arrayContaining(expected));
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+  };
 
-//   let cntr = 0;
+  let cntr = 0;
 
-//   // Send the dataset to the cluster
-//   dataset.forEach((o) => {
-//     const key = Object.keys(o)[0];
-//     const value = o[key];
-//     distribution.dlib.store.put(value, key, (e, v) => {
-//       cntr++;
-//       // Once the dataset is in place, run the map reduce
-//       if (cntr === dataset.length) {
-//         doMapReduce();
-//       }
-//     });
-//   });
-// });
+  // Send the dataset to the cluster
+  dataset.forEach((o) => {
+    const key = Object.keys(o)[0];
+    const value = o[key];
+    distribution.dlib.store.put(value, key, (e, v) => {
+      cntr++;
+      // Once the dataset is in place, run the map reduce
+      if (cntr === dataset.length) {
+        doMapReduce();
+      }
+    });
+  });
+});
 
-// test('(10 pts) (scenario) all.mr:tfidf', (done) => {
-// /*
-//     Implement the map and reduce functions.
-//     The map function should parse the string value and return an object with the word as the key and the document and count as the value.
-//     The reduce function should return the TF-IDF for each word.
+test('(10 pts) (scenario) all.mr:tfidf', (done) => {
+/*
+    Implement the map and reduce functions.
+    The map function should parse the string value and return an object with the word as the key and the document and count as the value.
+    The reduce function should return the TF-IDF for each word.
 
-//     Hint:
-//     TF = (Number of times the term appears in a document) / (Total number of terms in the document)
-//     IDF = log10(Total number of documents / Number of documents with the term in it)
-//     TF-IDF = TF * IDF
-// */
+    Hint:
+    TF = (Number of times the term appears in a document) / (Total number of terms in the document)
+    IDF = log10(Total number of documents / Number of documents with the term in it)
+    TF-IDF = TF * IDF
+*/
 
-//   const mapper = (key, value) => {
-//   };
+  const mapper = (key, value) => {
+    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+    const out = {};
+    let totalCount = words.length
+    words.forEach((word) => {
+      if(out[word]) {
+        out[word].itemCount += 1
+      }else {
+        out[word] = {documentId: key, wordCount: totalCount, itemCount: 1, document: value}
+      }
+    });
 
-//   // Reduce function: calculate TF-IDF for each word
-//   const reducer = (key, values) => {
-//   };
+    let res = []
+    for(const [key, value] of Object.entries(out)) {
+      res.push({[key]: value})
+    }
 
-//   const dataset = [
-//     {'doc1': 'machine learning is amazing'},
-//     {'doc2': 'deep learning powers amazing systems'},
-//     {'doc3': 'machine learning and deep learning are related'},
-//   ];
+    return res;
+  };
 
-//   const expected = [{'is': {'doc1': 0.12}},
-//     {'deep': {'doc2': 0.04, 'doc3': 0.03}},
-//     {'systems': {'doc2': 0.1}},
-//     {'learning': {'doc1': 0, 'doc2': 0, 'doc3': 0}},
-//     {'amazing': {'doc1': 0.04, 'doc2': 0.04}},
-//     {'machine': {'doc1': 0.04, 'doc3': 0.03}},
-//     {'are': {'doc3': 0.07}}, {'powers': {'doc2': 0.1}},
-//     {'and': {'doc3': 0.07}}, {'related': {'doc3': 0.07}}];
+  // Reduce function: calculate TF-IDF for each word
+  const reducer = (key, values) => {
+    const totalDocuments = 3
+    const documentsWithWord = values.length
+    const idf = Math.log10(totalDocuments / documentsWithWord * 1.0)
 
-//   const doMapReduce = (cb) => {
-//     distribution.tfidf.store.get(null, (e, v) => {
-//       try {
-//         expect(v.length).toBe(dataset.length);
-//       } catch (e) {
-//         done(e);
-//       }
+    let res = {}
+    for(const value of values) {
+      const amountOfTimesItem = value.itemCount
+      const totalAmountOfItems = value.wordCount
+      const tf = amountOfTimesItem / totalAmountOfItems * 1.0
+      if(!res[key]) {
+        res[key] = {}
+      }
 
-//       distribution.tfidf.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
-//         try {
-//           expect(v).toEqual(expect.arrayContaining(expected));
-//           done();
-//         } catch (e) {
-//           done(e);
-//         }
-//       });
-//     });
-//   };
+      res[key][value.documentId] = Math.round((tf * idf) * 100) / 100;
+    }
+    
+    return res
+  };
 
-//   let cntr = 0;
+  const dataset = [
+    {'doc1': 'machine learning is amazing'},
+    {'doc2': 'deep learning powers amazing systems'},
+    {'doc3': 'machine learning and deep learning are related'},
+  ];
 
-//   // Send the dataset to the cluster
-//   dataset.forEach((o) => {
-//     const key = Object.keys(o)[0];
-//     const value = o[key];
-//     distribution.tfidf.store.put(value, key, (e, v) => {
-//       cntr++;
-//       // Once the dataset is in place, run the map reduce
-//       if (cntr === dataset.length) {
-//         doMapReduce();
-//       }
-//     });
-//   });
-// });
+  const expected = [{'is': {'doc1': 0.12}},
+    {'deep': {'doc2': 0.04, 'doc3': 0.03}},
+    {'systems': {'doc2': 0.1}},
+    {'learning': {'doc1': 0, 'doc2': 0, 'doc3': 0}},
+    {'amazing': {'doc1': 0.04, 'doc2': 0.04}},
+    {'machine': {'doc1': 0.04, 'doc3': 0.03}},
+    {'are': {'doc3': 0.07}}, {'powers': {'doc2': 0.1}},
+    {'and': {'doc3': 0.07}}, {'related': {'doc3': 0.07}}];
 
-// /*
-//   The rest of the scenarios are left as an exercise.
-//   For each one you'd like to implement, you'll need to:
-//   - Define the map and reduce functions.
-//   - Create a dataset.
-//   - Run the map reduce.
-// */
+  const doMapReduce = (cb) => {
+    distribution.tfidf.store.get(null, (e, v) => {
+      try {
+        expect(v.length).toBe(dataset.length);
+      } catch (e) {
+        done(e);
+      }
 
-// test('(10 pts) (scenario) all.mr:crawl', (done) => {
-//     done(new Error('Implement this test.'));
-// });
+      distribution.tfidf.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+        try {
+          expect(v).toEqual(expect.arrayContaining(expected));
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+  };
 
-// test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
-//     done(new Error('Implement the map and reduce functions'));
-// });
+  let cntr = 0;
 
-// test('(10 pts) (scenario) all.mr:strmatch', (done) => {
-//     done(new Error('Implement the map and reduce functions'));
-// });
+  // Send the dataset to the cluster
+  dataset.forEach((o) => {
+    const key = Object.keys(o)[0];
+    const value = o[key];
+    distribution.tfidf.store.put(value, key, (e, v) => {
+      cntr++;
+      // Once the dataset is in place, run the map reduce
+      if (cntr === dataset.length) {
+        doMapReduce();
+      }
+    });
+  });
+});
 
-// test('(10 pts) (scenario) all.mr:ridx', (done) => {
-//     done(new Error('Implement the map and reduce functions'));
-// });
+/*
+  The rest of the scenarios are left as an exercise.
+  For each one you'd like to implement, you'll need to:
+  - Define the map and reduce functions.
+  - Create a dataset.
+  - Run the map reduce.
+*/
 
-// test('(10 pts) (scenario) all.mr:rlg', (done) => {
-//     done(new Error('Implement the map and reduce functions'));
-// });
+test('(10 pts) (scenario) all.mr:crawl', (done) => {
+  const dataset = [
+    {'url1': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_5/index.html'},
+    {'url2': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/fact_4/index.html'},
+    {'url3': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/fact_3/index.html'}
+  ]
+
+  const doMapReduce = (cb) => {
+    distribution.crawlGroup.store.get(null, (e, v) => {
+      try {
+        expect(v.length).toBe(dataset.length);
+      } catch (e) {
+        done(e);
+      }
+
+      distribution.crawlGroup.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+        try {
+          expect(v).toEqual(expect.arrayContaining(expected));
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+  };
+
+  const mapper = (key, value) => {
+    const text = getText(value)
+    console.log(text)
+  }
+
+  const reducer = (key, values) => {
+     
+  }
+
+  dataset.forEach((o) => {
+    const key = Object.keys(o)[0];
+    const value = o[key];
+    distribution.crawlGroup.store.put(value, key, (e, v) => {
+      cntr++;
+      // Once the dataset is in place, run the map reduce
+      if (cntr === dataset.length) {
+        doMapReduce();
+      }
+    });
+  });
+
+});
+
+test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
+    done(new Error('Implement the map and reduce functions'));
+});
+
+test('(10 pts) (scenario) all.mr:strmatch', (done) => {
+    done(new Error('Implement the map and reduce functions'));
+});
+
+test('(10 pts) (scenario) all.mr:ridx', (done) => {
+    done(new Error('Implement the map and reduce functions'));
+});
+
+test('(10 pts) (scenario) all.mr:rlg', (done) => {
+    done(new Error('Implement the map and reduce functions'));
+});
 
 /*
     This is the setup for the test scenario.
@@ -314,7 +404,18 @@ beforeAll((done) => {
               const tfidfConfig = {gid: 'tfidf'};
               distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
                 distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                  done();
+                  // const 
+                  // distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
+                  //   distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
+
+                  //     distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
+                  //       distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
+                  //         done();
+                  //       });
+                  //     });
+                  //   });
+                  done()
+                  });
                 });
               });
             });
