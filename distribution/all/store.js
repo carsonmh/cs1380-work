@@ -9,11 +9,16 @@ function store(config) {
           always be a string */
   return {
     get: (configuration, callback) => {
-      if(configuration == null) {
+      if(!configuration) {
+        let arr = []
         distribution[context.gid].comm.send([{gid: context.gid, key: null}], {service: 'store', method: 'get'}, (e, v) => {
-          callback(e, v)
+          for(const [key, value] of Object.entries(v)){
+            arr = arr.concat(value)
+          }
+          callback(null, arr)
           return
         })
+        return
       }
 
       const kid = typeof configuration == 'string' && configuration.length == 64 ? configuration : id.getID(configuration)

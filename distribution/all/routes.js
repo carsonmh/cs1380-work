@@ -13,7 +13,8 @@ function routes(config) {
   }) {
     const configuration = {service: 'routes', method: 'put'}
     distribution[context.gid].comm.send([service, name], configuration, (e, v) => {
-      callback(e, v)})
+      callback(e, v)
+    })
   }
 
   /**

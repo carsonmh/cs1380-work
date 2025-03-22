@@ -25,8 +25,9 @@ function get(configuration, callback) {
         return
     }
 
-    if (!hashMap[configuration] && !hashMap[configuration]) {
+    if (!hashMap[configuration]) {
         console.log(configuration, hashMap, hashMap[configuration])
+        console.trace()
         callback(Error("error"), null)
         return
     }

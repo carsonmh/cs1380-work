@@ -6,7 +6,7 @@
 const fs = require('node:fs')
 const {serialize, deserialize} = require('../util/serialization')
 const id = require("../util/id")
-const { assert } = require('node:console')
+const path = require("path")
 
 function getKeyAndGid(configuration) {
   let key = null
@@ -14,11 +14,13 @@ function getKeyAndGid(configuration) {
 
   if(configuration && !configuration.key && !configuration.gid) {
     key = configuration
-  }else if(configuration && configuration.key) {
-    key = configuration.key
-  }
-  if(configuration && configuration.gid) {
-    gid = configuration.gid
+  }else {
+    if(configuration && configuration.key) {
+      key = configuration.key
+    }
+    if(configuration && configuration.gid) {
+      gid = configuration.gid
+    }
   }
 
   return [key, gid]
@@ -39,15 +41,20 @@ function put(state, configuration, callback) {
     return
   }
   
-  const path = `store/${gid}-${key}.txt`
+  const path = `store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`
 
-  fs.writeFile(path, content, (err) => {
-    if (err) {
-      callback(new Error(err), null)
-    } else {
-      callback(null, state)
-    }
-  });
+
+  fs.mkdir(`store/${distribution.node.config.port}`, (e, v) => {
+    fs.mkdir(`store/${distribution.node.config.port}/${gid}`, (e, v) => {
+      fs.writeFile(path, content, (err) => {
+        if (err) {
+          callback(new Error(err), null)
+        } else {
+          callback(null, state)
+        }
+      });
+    })
+  })
 }
 
 function get(configuration, callback) {
@@ -62,13 +69,26 @@ function get(configuration, callback) {
   if(!gid) {
     gid = 'local'
   }
-  fs.readFile(`store/${gid}-${key}.txt`, (err, obj) => {
-    if (err) {
-      callback(new Error(err), null)
-    } else {
-      callback(null, deserialize(obj))
-    }
-  });
+
+  if(!key) {
+    let arr = []
+    fs.readdir(`store/${distribution.node.config.port}/${gid}`, (err, files) => {
+      for (const file of files) {
+        const filePath = path.join(`store/${distribution.node.config.port}/${gid}`, file);
+        const key = filePath.split('-')[1].split('.')[0]
+        arr.push(key)
+      }
+    callback(null, arr)
+    })
+  }else {
+    fs.readFile(`store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`, (err, obj) => {
+      if (err) {
+        callback(new Error(err), null)
+      } else {
+        callback(null, deserialize(obj))
+      }
+    });
+  }
 }
 
 function del(configuration, callback) {
@@ -81,11 +101,12 @@ function del(configuration, callback) {
   if(!gid) {
     gid = 'local'
   }
-  fs.readFile(`store/${gid}-${key}.txt`, (err, obj) => {
+
+  fs.readFile(`store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`, (err, obj) => {
     if (err) {
       callback(new Error(err), null)
     } else {
-      fs.unlink(`store/${gid}-${key}.txt`, (err) => {
+      fs.unlink(`store/${distribution.node.config.port}/${gid}/${gid}-${key}.txt`, (err) => {
         if (err) {
           callback(new Error(err), null)
         } else {

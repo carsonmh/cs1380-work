@@ -79,17 +79,18 @@ const start = function(callback) {
         }
 
         returnedService[method](...message, (e, v) => {
+
           if (!e) {
             global.moreStatus.counts += 1
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            // res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end(serialize([null, v]));
 
           }else if(e && v) {
             global.moreStatus.counts += 1
-            res.writeHead(200, { 'Content-Type': 'text/plain' })
+            // res.writeHead(200, { 'Content-Type': 'text/plain' })
             res.end(serialize([e, v]))
           }else {
-            res.writeHead(400, { 'Content-Type': 'text/plain' });
+            // res.writeHead(400, { 'Content-Type': 'text/plain' });
             res.end(serialize([e, null]));
           }
         })

@@ -19,7 +19,7 @@ const http = require('node:http');
  * @return {void}
  */
 function send(message, remote, callback) {
-    const messageString = serialize(message); 
+    const messageString = serialize(message);
     const options = {
         hostname: remote.node.ip,
         port: remote.node.port,
