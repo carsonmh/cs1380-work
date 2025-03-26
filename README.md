@@ -236,3 +236,35 @@ Performance is found in the package.json.
 > Why is the `reconf` method designed to first identify all the keys to be relocated and then relocate individual objects instead of fetching all the objects immediately and then pushing them to their corresponding locations?
 
 Because fetching all objects and then pushing them to the corresponding location would require a significant time sink and isn't required for what reconf is trying to do. Also, not all of them need to be pushed, so this would be a waste. 
+
+
+# M5: Distributed Execution Engine
+
+
+## Summary
+
+> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M5 (`hours`) and the lines of code per task.
+
+
+My implementation comprises 1 new software components, totaling 350 added lines of code over the previous implementation. 
+
+Key challenges included One key challenge was the setup. It was very difficult to figure out how to manage everything, and figure out how to make the nodes communicate with each other. Turns out you can just use the notify function to have each node send updates to each other and this works perfectly fine. Another challenge I ran into was getting the distributed shuffle to work. In the case where different nodes are sending the same key to one node, this caused things to get overwritten. So I just had each node create a unique key for the data and the node just put each item into memory, and then could read it that way as well. Finally, another challenge was allowing updates from all the nodes to the coordinator node. Turned out I was able to use an interval function to wait for the case where the nodes have all updated and this worked fine. 
+
+My implementation includes having a notify function, shuffle, map and reduce function on each of the nodes. This in turn allows everyone to communicate and allows each node to perform their respective tasks. Then the coordinator node basically does everything, and sends updates to the nodes for each operation and then subsequently waits for them to complete their tasks by waiting for an update from each one. 
+
+
+## Correctness & Performance Characterization
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness*: I wrote 5 cases testing the end-to-end functionality. This tests the exec function, notify function, and analyzes the different cases including complex reduce logic, list return values, map return values and different types of input data.
+
+
+*Performance*: My Computer can sustain 700 data points/second, with an average latency of 1.4 milliseconds seconds per data point
+
+
+## Key Feature
+
+> Which extra features did you implement and how?
+I didn't implement any of the extra features. 

@@ -278,23 +278,79 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
 */
 
 test('(10 pts) (scenario) all.mr:crawl', (done) => {
+  done(new Error('Implement the map and reduce functions'));
+  return
   const dataset = [
     {'url1': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_5/index.html'},
     {'url2': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/fact_4/index.html'},
     {'url3': 'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/fact_3/index.html'}
   ]
 
-  const doMapReduce = (cb) => {
-    distribution.crawlGroup.store.get(null, (e, v) => {
-      try {
-        expect(v.length).toBe(dataset.length);
-      } catch (e) {
-        done(e);
-      }
+  // const doMapReduce = (cb) => {
+  //   distribution.crawlGroup.store.get(null, (e, v) => {
 
-      distribution.crawlGroup.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+  //     distribution.crawlGroup.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+  //       try {
+  //         // expect(v).toEqual(expect.arrayContaining(expected));
+  //         done();
+  //       } catch (e) {
+  //         done(e);
+  //       }
+  //     });
+  //   });
+  // };
+
+  const mapper = (key, value) => {
+    // const text = getText(value)
+    // console.log(text, '\n\n')
+
+  }
+
+  const reducer = (key, values) => {
+     
+  }
+
+  // let cntr = 0
+  // dataset.forEach((o) => {
+  //   const key = Object.keys(o)[0];
+  //   const value = o[key];
+  //   distribution.crawlGroup.store.put(value, key, (e, v) => {
+  //     cntr++;
+  //     // Once the dataset is in place, run the map reduce
+  //     if (cntr === dataset.length) {
+  //       doMapReduce();
+  //     }
+  //   });
+  // });
+});
+
+
+test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
+  done(new Error('Implement the map and reduce functions'));
+  return
+  const dataset = [
+    {'data1': `<div class="container">
+                <h1>Welcome to CS1380 simple links</h1>
+                <p>Check out my <a href="level_1a/index.html">Some stuff</a>.</p>
+                <p>Check out my <a href="level_1b/index.html">Some more stuff</a>.</p>
+                <p>Check out a few <a href="level_1c/index.html">Some more more stuff</a>.</p>
+              </div>`},
+    {'data2': `<div class="container">
+      <h1>Welcome to CS1380 simple links</h1>
+      <p>Check out my <a href="level_1a/index.html">Some stuff</a>.</p>
+      <p>Check out my <a href="level_1b/index.html">Some more stuff</a>.</p>
+      <p>Check out a few <a href="level_1c/index.html">Some more more stuff</a>.</p>
+    </div>`},
+    {'data3': '<a href="level_1a/index.html">Some stuff</a>'}
+  ]
+
+  const doMapReduce = (cb) => {
+    distribution.urlxtrGroup.store.get(null, (e, v) => {
+
+      distribution.urlxtrGroup.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
         try {
-          expect(v).toEqual(expect.arrayContaining(expected));
+          // expect(v).toEqual(expect.arrayContaining(expected));
+          console.log(e, v)
           done();
         } catch (e) {
           done(e);
@@ -304,18 +360,97 @@ test('(10 pts) (scenario) all.mr:crawl', (done) => {
   };
 
   const mapper = (key, value) => {
-    const text = getText(value)
-    console.log(text)
+    // const parsedHTML = new JSDOM(value);
+    console.log(key, value)
+    // const aTags = parsedHTML.window.document.querySelectorAll('a');
+
+    // let map = {[key]: []}
+    // for (const tag of aTags) {
+    //   map[key].push(baseURL + tag.href);
+    // }
+    // console.log(map)
+    // return map
   }
 
   const reducer = (key, values) => {
-     
+    console.log(key, values)
   }
 
+  // let cntr = 0
+  // dataset.forEach((o) => {
+  //   const key = Object.keys(o)[0];
+  //   const value = o[key];
+  //   distribution.urlxtrGroup.store.put(value, key, (e, v) => {
+  //     cntr++;
+  //     // Once the dataset is in place, run the map reduce
+  //     if (cntr === dataset.length) {
+  //       doMapReduce();
+  //     }
+  //   });
+  // });
+});
+
+test('(10 pts) (scenario) all.mr:strmatch', (done) => {
+
+  const mapper = (key, value) => {
+    const regex = /[a-zA-Z]/ // Does the string have the word "one"
+
+    let res = {[value]: 0}
+
+    if(regex.test(value)) {
+      res[value] = 1
+    }
+
+    return res
+  };
+
+  const reducer = (key, values) => {
+    let res = {[key]: 0}
+    for(const val of values) {
+      if(val == 1) {
+        res[key] += 1
+      }
+    }
+    if(res[key]==0) {
+      return {}
+    }
+    return res
+  };
+
+  const dataset = [
+    {'000': 'yuh,'},
+    {'106': 'Texttestfour'},
+    {'212': '1'},
+    {'318': 'Texttestfour'},
+    {'424': 'testfive'},
+  ];
+
+  const expected = [ {}, { Texttestfour: 2 },  { 'yuh,': 1 }, { testfive: 1 } ]
+  const doMapReduce = (cb) => {
+    distribution.strmatchGroup.store.get(null, (e, v) => {
+      try {
+        expect(v.length).toBe(dataset.length);
+      } catch (e) {
+        done(e);
+      }
+
+      distribution.strmatchGroup.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+        expect(v.length).toEqual(expected.length)
+        try {
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+  };
+
+  let cntr = 0;
+  // Send the dataset to the cluster
   dataset.forEach((o) => {
     const key = Object.keys(o)[0];
     const value = o[key];
-    distribution.crawlGroup.store.put(value, key, (e, v) => {
+    distribution.strmatchGroup.store.put(value, key, (e, v) => {
       cntr++;
       // Once the dataset is in place, run the map reduce
       if (cntr === dataset.length) {
@@ -323,15 +458,6 @@ test('(10 pts) (scenario) all.mr:crawl', (done) => {
       }
     });
   });
-
-});
-
-test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
-    done(new Error('Implement the map and reduce functions'));
-});
-
-test('(10 pts) (scenario) all.mr:strmatch', (done) => {
-    done(new Error('Implement the map and reduce functions'));
 });
 
 test('(10 pts) (scenario) all.mr:ridx', (done) => {
@@ -404,17 +530,10 @@ beforeAll((done) => {
               const tfidfConfig = {gid: 'tfidf'};
               distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
                 distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                  // const 
-                  // distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                  //   distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-
-                  //     distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                  //       distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                  //         done();
-                  //       });
-                  //     });
-                  //   });
-                  done()
+                const strmatchConfig = {gid: 'strmatchGroup'};
+                distribution.local.groups.put(strmatchConfig, strmatchGroup, (e, v) => {
+                  distribution.strmatchGroup.groups.put(strmatchConfig, crawlGroup, (e, v) => {
+                    done()
                   });
                 });
               });
@@ -425,20 +544,19 @@ beforeAll((done) => {
     });
   });
 });
+})
 
-afterAll((done) => {
-  const remote = {service: 'status', method: 'stop'};
-  remote.node = n1;
-  distribution.local.comm.send([], remote, (e, v) => {
-    remote.node = n2;
+  afterAll((done) => {
+    const remote = {service: 'status', method: 'stop'};
+    remote.node = n1;
     distribution.local.comm.send([], remote, (e, v) => {
-      remote.node = n3;
+      remote.node = n2;
       distribution.local.comm.send([], remote, (e, v) => {
-        localServer.close();
-        done();
+        remote.node = n3;
+        distribution.local.comm.send([], remote, (e, v) => {
+          localServer.close();
+          done();
+        });
       });
     });
   });
-});
-
-

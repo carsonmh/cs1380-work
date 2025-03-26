@@ -1,6 +1,8 @@
 /** @typedef {import("../types").Callback} Callback */
 
 const id = require('../util/id')
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Map functions used for mapreduce

@@ -44,15 +44,17 @@ function put(state, configuration, callback) {
   const path = `store/${distribution.node.config.port}/${gid}/${key}.txt`
 
 
-  fs.mkdir(`store/${distribution.node.config.port}`, (e, v) => {
-    fs.mkdir(`store/${distribution.node.config.port}/${gid}`, (e, v) => {
-      fs.writeFile(path, content, (err) => {
-        if (err) {
-          callback(new Error(err), null)
-        } else {
-          callback(null, state)
-        }
-      });
+  fs.mkdir('store', (e, v) => {
+    fs.mkdir(`store/${distribution.node.config.port}`, (e, v) => {
+      fs.mkdir(`store/${distribution.node.config.port}/${gid}`, (e, v) => {
+        fs.writeFile(path, content, (err) => {
+          if (err) {
+            callback(new Error(err), null)
+          } else {
+            callback(null, state)
+          }
+        });
+      })
     })
   })
 }
@@ -73,6 +75,10 @@ function get(configuration, callback) {
   if(!key) {
     let arr = []
     fs.readdir(`store/${distribution.node.config.port}/${gid}`, (err, files) => {
+      if(!files){ 
+        callback(null, [])
+        return
+      }
       for (const file of files) {
         const filePath = path.join(`store/${distribution.node.config.port}/${gid}`, file);
         const key = filePath.split('/')[3].split('.')[0]
