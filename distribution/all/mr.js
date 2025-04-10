@@ -58,7 +58,7 @@ function mr(config) {
       }
 
       function workerSync(obj, cb) {
-        const memberAmount = 3
+        const memberAmount = 3 // TODO: don't hardcode this value
         count += 1
         if(count == memberAmount){ 
           count = 0
@@ -74,7 +74,6 @@ function mr(config) {
             for(const key of Object.keys(group)) {
               nodeToKeys[key] = []
             }
-
 
             for (const key of keys) {
               const node = id.consistentHash(id.getID(key), Object.keys(group))
@@ -131,6 +130,7 @@ function mr(config) {
                 arr.push(result)
               }
               counter += 1
+
               if (counter == total) {
                 distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
                   const operatorNode = obj.node
@@ -228,7 +228,6 @@ function mr(config) {
               }else {
                 map[item] = [v[item]]
               }
-
 
               if(i == keys.length) {
                 let res = []
