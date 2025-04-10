@@ -1,4 +1,3 @@
-
 const id = require("../util/id")
 function store(config) {
   const context = {};
@@ -44,7 +43,7 @@ function store(config) {
         }
         const node = id.consistentHash(kid, Object.keys(group))
         // ECONNREFUSED: because the node config is wrong
-        const remote = { node: group[node], service: 'store', method: 'put'}
+        const remote = { node: group[node], service: 'store', method: 'put' }
         distribution.local.comm.send([state, {key: configuration, gid: context.gid}], remote, (e, v) => {
           if(e) {
             callback(e, null)

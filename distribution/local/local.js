@@ -37,8 +37,14 @@ const mem = require('./mem');
 
 const store = require('./store');
 
-
+/* rpc */
 const rpc = require('./rpc');
+
+/* kafka service; only for kafka nodes */
+const kafka = require('./kafka')
+
+const crawl = require('./crawl')
+
 module.exports = {
   status: status,
   routes: routes,
@@ -48,4 +54,6 @@ module.exports = {
   mem: mem,
   store: store,
   rpc: rpc,
+  kafka: kafka,
+  crawl: crawl
 };

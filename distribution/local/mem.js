@@ -46,7 +46,7 @@ function get(configuration, callback) {
 
     if(!configuration.gid && !configuration.key) { // case for string
         if(!kvMap['local'][configuration]) {
-            callback(Error("wrong"), null)
+            callback(Error("not found"), null)
         }else{
             callback(null, kvMap['local'][configuration])
         }

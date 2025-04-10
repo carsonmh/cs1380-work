@@ -28,6 +28,10 @@ if (args.port) {
   global.nodeConfig.port = parseInt(args.port);
 }
 
+if(args.kafka) {
+  global.nodeConfig.kafka = true
+}
+
 
 if (args.config) {
   const nodeConfig = util.deserialize(args.config);
@@ -55,6 +59,10 @@ if (global.distribution === undefined) {
 distribution.util = require('./distribution/util/util.js');
 distribution.local = require('./distribution/local/local.js');
 distribution.node = require('./distribution/local/node.js');
+
+if(global.nodeConfig.kafka) {
+  distribution.kafka = require('./distribution/local/kafka.js')
+}
 
 for (const key in distribution.local) {
   distribution.local.routes.put(distribution.local[key], key);
