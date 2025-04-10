@@ -4,6 +4,9 @@ const fs = require('fs');
 const serialization = require('../util/serialization');
 
 const tfidfGroup = {};
+
+const crawlGroup = {};
+
 let localServer = null;
 
 let number_of_documents = 0;
@@ -46,6 +49,7 @@ function isSHA256(filename) {
 
 // calculates number of documents
 function calculate_document_number() {
+    // this should be crawler.get 
     distribution.tfidf.store.get(null, (e, v) => {
         // let node_num_doc = 0;
             v.forEach(key_name => {
@@ -63,13 +67,14 @@ function calculate_document_number() {
 function do_tf_idf(keys){
     const mapper = (key, value) => {
         const { JSDOM } = require('jsdom');
+        // console.log(value);
         const firstKey = Object.keys(value)[0];
         // first key of value
         const dom = new JSDOM(value[firstKey]);
         const textContent = dom.window.document.body.textContent;
         console.log("here is text content");
         console.log(textContent);
-        const cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ');
+        const cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
         const words = cleanText.split(' ').filter((e) => e.length > 0);
         console.log("here are words");
         console.log(words);
@@ -130,6 +135,7 @@ function do_tf_idf(keys){
             const serializedData = global.distribution.util.serialize(outputArray);
           
             const dirPath = `store/${global.distribution.node.config.port}/tfidf`;
+
             fs.mkdirSync(dirPath, { recursive: true });
             
             const filePath = path.join(dirPath, `${word}.txt`);
@@ -320,6 +326,8 @@ function put_things_in_local_storage() {
     const first_url = id.getID("hello.com");
     const second_url = id.getID("bye.com");
     const third_url = id.getID("iamok.com");
+    // this should be crawler -> actually it does not matter all the nodes should be part of the same group anyway
+    // because that is how map reduce works
     distribution.tfidf.store.put(obj1, first_url, (e, v) => {
         distribution.tfidf.store.put(obj2, second_url, (e, v) => {
           distribution.tfidf.store.put(obj3, third_url, (e, v) => {
@@ -338,14 +346,23 @@ function run() {
         tfidfGroup[id.getSID(n1)] = n1;
         tfidfGroup[id.getSID(n2)] = n2;
         tfidfGroup[id.getSID(n3)] = n3;
+        // the crawl group was used just for testing purposes its not actually used 
+        crawlGroup[id.getSID(n1)] = n1;
+        crawlGroup[id.getSID(n2)] = n2;
+        crawlGroup[id.getSID(n3)] = n3;
 
 
         startNodes(() => {
             // this is just for testing purposes only 
             distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
                 distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                    console.log("before put things in local storage");
-                    put_things_in_local_storage();
+                    const crawlConfig = {gid: 'crawl'};
+                    distribution.local.groups.put(crawlConfig, crawlGroup, (e, v) => {
+                        distribution.crawl.groups.put(crawlConfig, crawlGroup, (e, v) => {
+                            console.log("before put things in local storage");
+                            put_things_in_local_storage();
+                        });
+                    });
                 });
             });
         });
