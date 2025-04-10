@@ -23,6 +23,7 @@
   "license": "ISC",
   "dependencies": {
     "@brown-ds/distribution": "^0.1.18",
+    "jsdom": "^26.0.0",
     "yargs": "^17.7.2"
   },
   "report": {
@@ -87,29 +88,28 @@
     "hours": 11,
     "loc-t1": 30,
     "loc-t2": 115,
-    "loc-t3": 20, 
+    "loc-t3": 20,
     "loc-t4": 40,
     "loc-t5": 35,
     "loc-t6": 32
-
   },
   "report-m4": {
-    "hours": 10, 
+    "hours": 10,
     "insertion-latency": 0.61,
     "insertion-throughput": 6.1,
     "retrieval-latency": 0.24,
     "retrieval-throughput": 2.4,
     "loc-t1": 30,
     "loc-t2": 125,
-    "loc-t3": 20, 
+    "loc-t3": 20,
     "loc-t4": 42,
     "loc-t5": 50
   },
   "report-m5": {
-    "hours": 15, 
+    "hours": 15,
     "loc-t1": 50,
     "loc-t2": 225,
-    "loc-t3": 25, 
+    "loc-t3": 25,
     "loc-t4": 45,
     "loc-t5": 30,
     "loc-t6": 15

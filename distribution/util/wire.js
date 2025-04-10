@@ -7,6 +7,7 @@ const { serialize, deserialize } = require('./serialization');
 global.toLocal = {}
 
 function createRPC(func) {
+  // console.log("CALLED!!!");
   function stub (...args) {
     const cb = args.pop()
     let remote = {node: '__NODE_INFO__', service: 'rpc', method: '__funcname__'}

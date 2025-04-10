@@ -1,5 +1,6 @@
 
 function serialize(object) {
+  // return require('@brown-ds/distribution').util.serialize(object);
   if (typeof object == 'number') {
     return `{"type":"number","value":"${object.toString()}"}`;
   }
@@ -49,8 +50,10 @@ function serialize(object) {
 
 
 function deserialize(string) {
-
+  // return require('@brown-ds/distribution').util.deserialize(string);
+  // console.log(string);
   const obj = JSON.parse(string);
+  // edge case we are dealing with an html doctype
   switch (obj.type) {
     case 'number':
       return parseFloat(obj.value);

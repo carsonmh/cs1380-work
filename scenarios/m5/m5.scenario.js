@@ -200,7 +200,7 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
 
   // Reduce function: calculate TF-IDF for each word
   const reducer = (key, values) => {
-    const totalDocuments = 3
+    const totalDocuments = 3 //
     const documentsWithWord = values.length
     const idf = Math.log10(totalDocuments / documentsWithWord * 1.0)
 

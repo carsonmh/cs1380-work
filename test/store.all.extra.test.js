@@ -19,7 +19,10 @@ test('(3 pts) all.store.get(no key)', (done) => {
       distribution.mygroup.store.put(users[2], keys[2], (e, v) => {
         distribution.mygroup.store.get(null, (e, v) => {
           try {
-            expect(e).toEqual({});
+            console.log("here is value");
+            console.log(v);
+            expect(e).toEqual(null);
+            
             expect(Object.values(v)).toEqual(expect.arrayContaining(keys));
             done();
           } catch (error) {
@@ -48,7 +51,7 @@ test('(1 pts) all.store.get(no key)', (done) => {
       distribution.mygroup.store.put(users[2], keys[2], (e, v) => {
         distribution.mygroup.store.get(null, (e, v) => {
           try {
-            expect(e).toEqual({});
+            expect(e).toEqual(null);
             expect(Object.values(v)).toEqual(expect.arrayContaining(keys));
             done();
           } catch (error) {

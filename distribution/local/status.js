@@ -1,4 +1,5 @@
 const log = require('../util/log');
+const serialization = require('../util/serialization');
 
 const status = {};
 
@@ -39,6 +40,13 @@ status.get = function(configuration, callback) {
     callback(null, process.memoryUsage().heapUsed);
     return;
   }
+  // const obj1 = {"hello.com": {outgoing_links: ["hi.com", "bad.com"], text: "machine learning is amazing"}};
+  // const obj2 = {"bye.com": {outgoing_links: ["hi.com", "bad.com"], text: "deep learning powers amazing systems"}};
+  // const obj3 = {"gone.com": {outgoing_links: ["hi.com", "bad.com"], text: "machine learning and deep learning are related"}};
+  // console.log(serialization.serialize(obj1));
+  // console.log(serialization.serialize(obj2));
+  // console.log(serialization.serialize(obj3));
+
   callback(new Error('Status key not found'));
 };
 
