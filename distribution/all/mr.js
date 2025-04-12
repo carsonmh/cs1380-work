@@ -47,7 +47,6 @@ function mr(config) {
   function exec(configuration, cb) {
     let count = 0
     function notify(obj, cb) {
-
       function operatorSync(obj, cb) {
         const operatorNode = obj.node
         obj.operation = 'worker_sync'
@@ -58,7 +57,7 @@ function mr(config) {
       }
 
       function workerSync(obj, cb) {
-        const memberAmount = 3 // TODO: don't hardcode this value
+        const memberAmount = obj.memberCount // TODO: don't hardcode this value
         count += 1
         if(count == memberAmount){ 
           count = 0
@@ -87,7 +86,7 @@ function mr(config) {
             const total = Object.keys(nodeToKeys).length
 
             for (const [key, value] of Object.entries(nodeToKeys)) {
-              const object = { keys: value, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_map', gid: obj.gid }
+              const object = { memberCount: obj.memberCount, keys: value, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_map', gid: obj.gid }
               const remote = { node: group[key], service: obj.serviceNames.notifyServiceName, method: 'notify' }
               distribution.local.comm.send(
                 [object], remote, (e, v) => {
@@ -123,37 +122,40 @@ function mr(config) {
           distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
             distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
             distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
-              const result = returnedService.map(key, data)
-              if(Array.isArray(result)) {
-                arr = arr.concat(result)
-              }else {
-                arr.push(result)
-              }
-              counter += 1
+              // returnedService.map(key, data).then(result => {
+                const result = returnedService.map(key, data)
+                if(Array.isArray(result)) {
+                  arr = arr.concat(result)
+                }else {
+                  arr.push(result)
+                }
 
-              if (counter == total) {
-                distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
-                  const operatorNode = obj.node
-                  obj.operation = 'map_sync'
-                  obj.node = distribution.node.config
-                  distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
-                    cb(null, null)
+                counter += 1
+  
+                if (counter == total) {
+                  distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
+                    const operatorNode = obj.node
+                    obj.operation = 'map_sync'
+                    obj.node = distribution.node.config
+                    distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                      cb(null, null)
+                    })
                   })
-                })
-              }
+                }
+              })
             })
           })
-          })
+          // })
         }
       }
 
       function mapSync(obj, cb) {
-        const memberAmount = 3
+        const memberAmount = obj.memberCount
         count += 1
         if(count == memberAmount){ 
           count = 0
           distribution[obj.gid].comm.send(
-            [{ gid: obj.gid, hash: id.consistentHash, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_shuffle' }],
+            [{ memberCount: obj.memberCount, gid: obj.gid, hash: id.consistentHash, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_shuffle' }],
             { service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
               cb(null, null)
             })
@@ -163,7 +165,7 @@ function mr(config) {
       }
 
       function shuffleSync(obj, cb) {
-        const memberAmount = 3
+        const memberAmount = obj.memberCount
         count += 1
         if(count == memberAmount){ 
           count = 0
@@ -179,7 +181,7 @@ function mr(config) {
       }
 
       function reduceSync(obj, cb) {
-        const memberAmount = 3
+        const memberAmount = obj.memberCount
         count += 1
         if(count == memberAmount){ 
           count = 0
@@ -203,10 +205,8 @@ function mr(config) {
       }
 
       function startReduce(obj, cb) {
-        distribution.local.mem.get({key: null, gid: obj.gid}, (e, keys) => {
-          let map = {}
-          let i = 0
-          if(keys.length == 0) {
+        distribution.local.store.get({key: 'shuffleValue', gid: obj.gid}, (e, keys) => {
+          if(keys == null) {
             const res = []
             distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
               const operatorNode = obj.node
@@ -218,37 +218,36 @@ function mr(config) {
             })
             return
           }
-
-          for(const key of keys) {
-            distribution.local.mem.get({key: key, gid: obj.gid}, (e, v) => {
-              i += 1
-              const item = key.split(' ')[0]
-              if(map[item]) {
-                map[item].push(v[item])
-              }else {
-                map[item] = [v[item]]
-              }
-
-              if(i == keys.length) {
-                let res = []
-                distribution.local.routes.get(obj.serviceNames.reduceServiceName, (e, returnedService) => {
-                  for(const [key, value] of Object.entries(map)){ 
-                    const output = returnedService.reduce(key, value)
-                    res.push(output)
-                  }
-
-                  distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
-                    const operatorNode = obj.node
-                    obj.operation = 'reduce_sync'
-                    obj.node = distribution.node.config
-                    distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
-                      cb(null, null) // TEMP
-                    })
-                  })
-                })
-              }
-            })
+          
+          let map = {}
+          for(const [key, value] of Object.keys(keys)) {
+            console.log(key, value, keys)
+            if(map[key]) {
+              map[key].push(value)
+            }else {
+              map[key] = [value]
+            }
           }
+
+          console.log(map)
+
+
+          let res = []
+          distribution.local.routes.get(obj.serviceNames.reduceServiceName, (e, returnedService) => {
+            for(const [key, value] of Object.entries(map)){ 
+              const output = returnedService.reduce(key, value)
+              res.push(output)
+            }
+
+            distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
+              const operatorNode = obj.node
+              obj.operation = 'reduce_sync'
+              obj.node = distribution.node.config
+              distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                cb(null, null) // TEMP
+              })
+            })
+          })
         })
       }
 
@@ -291,19 +290,26 @@ function mr(config) {
               cb(null, null)
               return
             }
+
+            const nodeToUrls = {}
+            for(const mapping of mappedValues){ 
+              const nodeKey = id.consistentHash(id.getID(Object.keys(mapping)[0]), Object.keys(group))
+              if(nodeToUrls[nodeKey]) {
+                nodeToUrls[nodeKey].push(mapping)
+              }else {
+                nodeToUrls[nodeKey] = [mapping]
+              }
+            }
             let i = 0
 
             let idVar = 0
-            for(const mapping of mappedValues){ 
+            for(const nodeKey of Object.keys(nodeToUrls)){ 
               idVar += 1
-              const nodePort = distribution.node.config.port
-              const key = Object.keys(mapping)[0] + ' ' + nodePort  + idVar
-              const kid = Object.keys(mapping)[0]
-              const node = id.consistentHash(id.getID(kid), Object.keys(group))
-              const remote = {node: group[node], service: "mem", method: "put"}
-                distribution.local.comm.send([mapping, {key: key, gid: obj.gid}], remote, (e, v) => {
+              const node = group[nodeKey]
+              const remote = {node: node, service: "store", method: "put"}
+                distribution.local.comm.send([nodeToUrls[nodeKey], {key: 'shuffleValue', gid: obj.gid}], remote, (e, v) => {
                   i += 1
-                  if(i == mappedValues.length) {
+                  if(i == Object.keys(nodeToUrls).length) {
                     cb(null, null)
                   }
                 })
@@ -341,7 +347,7 @@ function mr(config) {
             distribution[context.gid].routes.put(shuffleService, shuffleServiceName, (e, v) => {
               distribution.local.groups.get(context.gid, (e, group) => {
               distribution[context.gid].comm.send(
-                [{gid: context.gid, node: distribution.node.config, serviceNames: serviceNames, operation: 'operator_sync'}],
+                [{memberCount: Object.keys(group).length, gid: context.gid, node: distribution.node.config, serviceNames: serviceNames, operation: 'operator_sync'}],
                 {service: notifyServiceName, method: 'notify'}, 
                 (e, v) => {
                   let iterator = 0
