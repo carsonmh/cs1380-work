@@ -107,7 +107,7 @@ const mapper = (key, value) => {
 }
 
 const reducer = (key, values) => {
-
+    return values
 }
 
 module.exports = { mapper, reducer }

@@ -3,7 +3,7 @@ const id = distribution.util.id;
 
 
 
-// const {mapper, reducer} = require('../distribution/engine/crawler-mapreduce/crawler-functions');
+const {mapper, reducer} = require('../distribution/engine/crawler-mapreduce/crawler-functions');
 
 const crawlGroupGroup = {};
 
