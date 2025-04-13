@@ -1,10 +1,6 @@
 /** @typedef {import("../types").Callback} Callback */
 
 const id = require('../util/id')
-const fs = require('fs');
-const path = require('path');
-const {serialize, deserialize} = require('../util/serialization')
-
 /**
  * Map functions used for mapreduce
  * @callback Mapper
@@ -48,7 +44,6 @@ function mr(config) {
   function exec(configuration, cb) {
     let count = 0
     function notify(obj, cb) {
-      console.log(obj.operation)
       function operatorSync(obj, cb) {
         const operatorNode = obj.node
         obj.operation = 'worker_sync'
@@ -125,7 +120,7 @@ function mr(config) {
             distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
             distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
               returnedService.map(key, data).then(result => {
-                const result = returnedService.map(key, data)
+                // const result = returnedService.map(key, data)
                 if(Array.isArray(result)) {
                   arr = arr.concat(result)
                 }else {
@@ -304,7 +299,7 @@ function mr(config) {
               return
             }
 
-            const nodeToUrls = {}
+            let nodeToUrls = {}
             for(const mapping of mappedValues){ 
               const nodeKey = id.consistentHash(id.getID(Object.keys(mapping)[0]), Object.keys(group))
               if(nodeToUrls[nodeKey]) {
@@ -386,7 +381,7 @@ function mr(config) {
           })
         })
       })
-    }
+  }
 
   return { exec };
 };

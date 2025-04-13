@@ -34,7 +34,6 @@ const store = require('./store');
 /* Map-Reduce Service */
 const mr = require('./mr');
 
-
 module.exports = {
   comm: comm,
   groups: groups,
