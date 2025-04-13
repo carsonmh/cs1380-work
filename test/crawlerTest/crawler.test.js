@@ -35,6 +35,7 @@ test('crawler mapreduce', (done) => {
   ]
 
   distribution.local.groups.get('crawlGroup', (e, group) => {
+    console.log(group)
     const nodeToUrls = {}
     for(const url of urls) {
       const urlId = id.getID(url)
@@ -52,7 +53,8 @@ test('crawler mapreduce', (done) => {
     for(const [key, value] of Object.entries(nodeToUrls)) {
       const remote = {node: group[key], service: 'store', method: 'put'}
       distribution.local.comm.send([value, {key: 'urls', gid: 'crawlGroup'}], remote, (e, v) => {
-        iter+= 1
+        console.log(e, v)
+        iter += 1
         if(iter == Object.keys(nodeToUrls).length){ 
           distribution.crawlGroup.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
             console.log(e, v)
@@ -108,9 +110,9 @@ beforeAll((done) => {
     distribution.local.comm.send([], remote, (e, v) => {
       remote.node = workerNode1;
       distribution.local.comm.send([], remote, (e, v) => {
-          distribution.local.comm.send([], remote, (e, v) => {
+          // distribution.local.comm.send([], remote, (e, v) => {
             startNodes();
-          });
+          // });
         })
     })
   
@@ -119,18 +121,16 @@ beforeAll((done) => {
       crawlGroupGroup[id.getSID(workerNode1)] = workerNode1;
       crawlGroupGroup[id.getSID(workerNode2)] = workerNode2;
 
-      processGroupGroup[id.getSID(workerNode1)] = workerNode1
-      processGroupGroup[id.getSID(workerNode2)] = workerNode2
+      // processGroupGroup[id.getSID(workerNode1)] = workerNode1
+      // processGroupGroup[id.getSID(workerNode2)] = workerNode2
   
       const groupInstantiation = () => {
         // Create the groups
-        distribution.local.groups
-            .put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
-              distribution.crawlGroup.groups
-              .put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
-                done();
-              })
-            });
+        distribution.local.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
+          distribution.crawlGroup.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
+            done();
+          })
+        });
       };
   
       // Now, start the nodes listening node

@@ -3,6 +3,7 @@
 const id = require('../util/id')
 const fs = require('fs');
 const path = require('path');
+const {serialize, deserialize} = require('../util/serialization')
 
 /**
  * Map functions used for mapreduce
@@ -47,6 +48,7 @@ function mr(config) {
   function exec(configuration, cb) {
     let count = 0
     function notify(obj, cb) {
+      console.log(obj.operation)
       function operatorSync(obj, cb) {
         const operatorNode = obj.node
         obj.operation = 'worker_sync'
@@ -122,7 +124,7 @@ function mr(config) {
           distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
             distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
             distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
-              // returnedService.map(key, data).then(result => {
+              returnedService.map(key, data).then(result => {
                 const result = returnedService.map(key, data)
                 if(Array.isArray(result)) {
                   arr = arr.concat(result)
@@ -145,7 +147,7 @@ function mr(config) {
               })
             })
           })
-          // })
+          })
         }
       }
 
@@ -205,8 +207,10 @@ function mr(config) {
       }
 
       function startReduce(obj, cb) {
-        distribution.local.store.get({key: 'shuffleValue', gid: obj.gid}, (e, keys) => {
-          if(keys == null) {
+        distribution.local.store.get({key: null, gid: obj.gid}, (e, keys) => {
+          let map = {}
+          let i = 0
+          if(keys.length == 0) {
             const res = []
             distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
               const operatorNode = obj.node
@@ -218,36 +222,41 @@ function mr(config) {
             })
             return
           }
-          
-          let map = {}
-          for(const [key, value] of Object.keys(keys)) {
-            console.log(key, value, keys)
-            if(map[key]) {
-              map[key].push(value)
-            }else {
-              map[key] = [value]
-            }
-          }
 
-          console.log(map)
+          for(const key of keys) {
+            distribution.local.store.get({key: key, gid: obj.gid}, (e, v) => {
+              i += 1
+              for(const mapping of v) {
+                const key = Object.keys(mapping)[0]
+                const value = mapping[key]
+                if(map[key]) {
+                  map[key].push(value)
+                }else {
+                  map[key] = [value]
+                }
+              }
 
 
-          let res = []
-          distribution.local.routes.get(obj.serviceNames.reduceServiceName, (e, returnedService) => {
-            for(const [key, value] of Object.entries(map)){ 
-              const output = returnedService.reduce(key, value)
-              res.push(output)
-            }
-
-            distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
-              const operatorNode = obj.node
-              obj.operation = 'reduce_sync'
-              obj.node = distribution.node.config
-              distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
-                cb(null, null) // TEMP
-              })
+              if(i == keys.length) {
+                let res = []
+                distribution.local.routes.get(obj.serviceNames.reduceServiceName, (e, returnedService) => {
+                  for(const [key, value] of Object.entries(map)){ 
+                    const output = returnedService.reduce(key, value)
+                    res.push(output)
+                  }
+                  
+                  distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
+                    const operatorNode = obj.node
+                    obj.operation = 'reduce_sync'
+                    obj.node = distribution.node.config
+                    distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                      cb(null, null) // TEMP
+                    })
+                  })
+                })
+              }
             })
-          })
+          }
         })
       }
 
@@ -285,6 +294,10 @@ function mr(config) {
       const id = require('../util/id')
       distribution.local.groups.get(obj.gid, (e, group) => {
         distribution.local.store.get({gid: obj.gid, key: 'mappedValues'}, (e, mappedValues) => {
+          if(e) {
+            cb(e, null)
+          }
+
           distribution.local.store.del({gid: obj.gid, key: 'mappedValues'}, (e, res) => {
             if(mappedValues.length == 0) {
               cb(null, null)
@@ -300,21 +313,19 @@ function mr(config) {
                 nodeToUrls[nodeKey] = [mapping]
               }
             }
+
             let i = 0
 
-            let idVar = 0
             for(const nodeKey of Object.keys(nodeToUrls)){ 
-              idVar += 1
               const node = group[nodeKey]
               const remote = {node: node, service: "store", method: "put"}
-                distribution.local.comm.send([nodeToUrls[nodeKey], {key: 'shuffleValue', gid: obj.gid}], remote, (e, v) => {
-                  i += 1
-                  if(i == Object.keys(nodeToUrls).length) {
-                    cb(null, null)
-                  }
-                })
-
-                // TODO: send these in a batch instead of one at a time
+              const arr = nodeToUrls[nodeKey]
+              distribution.local.comm.send([arr, {key: 'shuffleValue ' + distribution.node.config.port, gid: obj.gid}], remote, (e, v) => {
+                i += 1
+                if(i == Object.keys(nodeToUrls).length) {
+                  cb(null, null)
+                }
+              })
               }
             })
           })
