@@ -116,7 +116,6 @@ function run() {
                         for(const url of urls) {
                           const urlId = id.getID(url)
                           const nodeKey = id.consistentHash(urlId, Object.keys(group))
-                          console.log(nodeKey, urlId)
                           const node = group[nodeKey]
                           if(nodeToUrls[nodeKey]) {
                             nodeToUrls[nodeKey].push(url)

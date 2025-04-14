@@ -128,7 +128,6 @@ function mr(config) {
               //   cb(e, null)
               //   return
               // }
-              console.log(e, data)
               distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
               distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
                 returnedService.map(key, data).then(result => {
