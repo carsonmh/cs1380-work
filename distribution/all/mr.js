@@ -120,9 +120,15 @@ function mr(config) {
           return
         }
 
-        function go() {
+        function go(cb) {
           for (const key of obj.keys) {
             distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
+              // if(e){ 
+                // console.log(cb.toString()) // TODO: gracefully end when out of URLs. 
+              //   cb(e, null)
+              //   return
+              // }
+              console.log(e, data)
               distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
               distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
                 returnedService.map(key, data).then(result => {
@@ -157,11 +163,12 @@ function mr(config) {
               const sha256Regex = /^[a-f0-9]{64}$/i;
               return sha256Regex.test(filename);
             }
+
             obj.keys = keys.filter(key => key != 'urls' && isSHA256(key))
-            go()
+            go(cb)
           })
         }else {
-          go()
+          go(cb)
         }
       }
 

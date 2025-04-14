@@ -32,7 +32,6 @@ const mapper = (key, value) => {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
         let newURLs = new Set();
 
-        
         const tasks = value.map(url => {
             return fetch(url, {
                 method: "GET", 

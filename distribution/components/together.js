@@ -103,17 +103,16 @@ function run() {
                 distribution.workers.groups.put(workerConfig, workerGroup, (e, v) => {
                     // start the crawling
                     const urls = [
-                        'https://cs.brown.edu/courses/csci1380/sandbox/1',
-                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1a/index.html',
-                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/index.html',
-                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/index.html',
-                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_6/index.html',
-                      ]
+                        'https://www.gutenberg.org',
+                    ]
             
                       console.log("starting crawler")
                     
                       distribution.local.groups.get('workers', (e, group) => {
                         const nodeToUrls = {}
+                        for(const node of Object.keys(group)) {
+                            nodeToUrls[node] = [];
+                        }
                         for(const url of urls) {
                           const urlId = id.getID(url)
                           const nodeKey = id.consistentHash(urlId, Object.keys(group))
