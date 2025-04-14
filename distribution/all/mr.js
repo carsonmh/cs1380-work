@@ -120,36 +120,48 @@ function mr(config) {
           return
         }
 
-        const id = require('../util/id')
+        function go() {
+          for (const key of obj.keys) {
+            distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
+              distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
+              distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
+                returnedService.map(key, data).then(result => {
+                  if(Array.isArray(result)) {
+                    arr = arr.concat(result)
+                  }else {
+                    arr.push(result)
+                  }
 
-        console.log(obj.keys, id.getSID(distribution.node.config))
-        for (const key of obj.keys) {
-          distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
-            distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
-            distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
-              returnedService.map(key, data).then(result => {
-                if(Array.isArray(result)) {
-                  arr = arr.concat(result)
-                }else {
-                  arr.push(result)
-                }
-
-                counter += 1
-  
-                if (counter == total) {
-                  distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
-                    const operatorNode = obj.node
-                    obj.operation = 'map_sync'
-                    obj.node = distribution.node.config
-                    distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
-                      cb(null, null)
+                  counter += 1
+    
+                  if (counter == total) {
+                    distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
+                      const operatorNode = obj.node
+                      obj.operation = 'map_sync'
+                      obj.node = distribution.node.config
+                      distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                        cb(null, null)
+                      })
                     })
-                  })
-                }
+                  }
+                })
               })
             })
+            })
+          }
+        }
+
+        if(obj.keys.length == 1 && obj.keys[0] == 'indexer') {
+          distribution.local.store.get({gid: obj.gid, key: null}, (e, keys) => {
+            function isSHA256(filename) {
+              const sha256Regex = /^[a-f0-9]{64}$/i;
+              return sha256Regex.test(filename);
+            }
+            obj.keys = keys.filter(key => key != 'urls' && isSHA256(key))
+            go()
           })
-          })
+        }else {
+          go()
         }
       }
 
@@ -159,7 +171,7 @@ function mr(config) {
         if(count == memberAmount){ 
           count = 0
           distribution[obj.gid].comm.send(
-            [{ memberCount: obj.memberCount, gid: obj.gid, hash: id.consistentHash, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_shuffle' }],
+            [{ keys: obj.keys, memberCount: obj.memberCount, gid: obj.gid, hash: id.consistentHash, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_shuffle' }],
             { service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
               cb(null, null)
             })
@@ -175,7 +187,7 @@ function mr(config) {
           count = 0
 
           distribution[obj.gid].comm.send(
-            [{ gid: obj.gid, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_reduce' }],
+            [{ keys: obj.keys, gid: obj.gid, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_reduce' }],
             { service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
               cb(null, null)
             })
@@ -248,8 +260,15 @@ function mr(config) {
                         const output = returnedService.reduce(key, value)
                         res.push(output)
                       }
+
+                      let key;
                       
-                      const key = 'urls'
+                      if(obj.keys.length == 1 && obj.keys[0] == 'urls') {
+                        key = 'urls'
+                      }else {
+                        key = 'result'
+                      }
+
                       distribution.local.store.put(res, { key: key, gid: obj.gid }, (e, v) => {
                         const operatorNode = obj.node
                         obj.operation = 'reduce_sync'

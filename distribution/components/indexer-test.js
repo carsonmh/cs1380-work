@@ -100,10 +100,6 @@ function do_tf_idf(keys){
     let reducer = (key, values) => {
         const fs = require('fs');
         const path = require("path");
-        // console.log("IN REDUCER - here is key");
-        // console.log(key);
-        // console.log("IN REDUCER - here is value");
-        // console.log(values);
         const num_docs = 0;
 
         const documentsWithWord = values.length;

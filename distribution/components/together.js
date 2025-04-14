@@ -69,9 +69,11 @@ function do_tf_idf(keys){
 
     let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
 
-    distribution.workers.mr.exec({keys: keys, map: indexMapper, reduce: reducertfidf}, (e, v) => {
+    // can't just be URLs becaues it is searching by key
+    distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
         try {
-          end();
+        compose_crawl_index()
+        //   end();
         } catch (e) {
           console.log(e);
         }
@@ -80,124 +82,10 @@ function do_tf_idf(keys){
 
 const workerConfig = {  gid: 'workers' };
 
-function isValidURL(str) {
-    try {
-        new URL(str);
-        return true;
-    } catch (_) {
-        return false;
-    }
-}
-
 function compose_crawl_index() {
-    // const urlFilePath = 'url.txt';
-
-    // Write initial URL to start crawling
-    // if (!fs.existsSync(urlFilePath) || fs.readFileSync(urlFilePath, 'utf8').trim() === '') {
-    //     fs.writeFileSync(urlFilePath, 'https://www.gutenberg.org\n', 'utf8');
-    // }
-
-    function loop() {
-        // let urls = fs.readFileSync(urlFilePath, 'utf8').split('\n').filter(u => u.trim() !== '');
-        // if (urls.length === 0) {
-        //     console.log('No more URLs to crawl. Stopping.');
-        //     end();
-        //     return;
-        // }
-        // // Filter out invalid URLs
-        // urls = urls.filter(isValidURL);
-
-        // // Overwrite file with only valid URLs
-        // fs.writeFileSync(urlFilePath, urls.join('\n'), 'utf8');
-
-        // if (urls.length === 0) {
-        //     console.log('No more valid URLs to crawl. Stopping.');
-        //     end();
-        //     return;
-        // }
-
-        // STEP 1: Crawl + distribute urls 
-        // distribution.local.groups.get('workers', (e, group) => {
-        //     const nodeToUrls = {}
-        //     for(const url of urls) {
-        //       const urlId = id.getID(url)
-        //       const nodeKey = id.consistentHash(urlId, Object.keys(group))
-        //       const node = group[nodeKey]
-        //       if(nodeToUrls[nodeKey]) {
-        //         nodeToUrls[nodeKey].push(url)
-        //       }else {
-        //         nodeToUrls[nodeKey] = [url]
-        //       }
-        //     }
-        
-        //     let iter = 0;
-        
-        //     for(const [key, value] of Object.entries(nodeToUrls)) {
-        //       const remote = {node: group[key], service: 'store', method: 'put'}
-        //       console.log("here is the value I am putting");
-        //       console.log(value);
-        //       distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], remote, (e, v) => {
-        //         console.log(e, v)
-        //         iter += 1
-        //         if(iter == Object.keys(nodeToUrls).length){ 
-        //           distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
-        //             // console.log(v)
-        //             // flatten the output 
-        //             const flattened = v.flat();
-        //             const fileContent = flattened.join('\n');
-        //             fs.writeFileSync('url.txt', fileContent, 'utf8');
-
-        //             // now we do the map and reduce for the indexer 
-        //             // STEP 2: Now we run the indexer on the new values 
-        //             calculate_document_number();
-        //             // loop(); // -> this would be for the final version
-        //           })
-        //         }
-        //       })
-        //     }
-        //   })
-
-        const urls = [
-            'https://cs.brown.edu/courses/csci1380/sandbox/1',
-            'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1a/index.html',
-            'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/index.html',
-            'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/index.html',
-            'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_6/index.html',
-          ]
-
-          console.log("starting crawler")
-        
-          distribution.local.groups.get('workers', (e, group) => {
-            const nodeToUrls = {}
-            for(const url of urls) {
-              const urlId = id.getID(url)
-              const nodeKey = id.consistentHash(urlId, Object.keys(group))
-              console.log(nodeKey, urlId)
-              const node = group[nodeKey]
-              if(nodeToUrls[nodeKey]) {
-                nodeToUrls[nodeKey].push(url)
-              }else {
-                nodeToUrls[nodeKey] = [url]
-              }
-            }
-        
-            let iter = 0;
-        
-            for(const [key, value] of Object.entries(nodeToUrls)) {
-              const remote = {node: group[key], service: 'store', method: 'put'}
-              distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], remote, (e, v) => {
-                iter += 1
-                if(iter == Object.keys(nodeToUrls).length){ 
-                  distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
-                    calculate_document_number();
-                  })
-                }
-              })
-            }
-          })
-    }
-
-    loop();
+    distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+        calculate_document_number();
+    })
 }
 
 function run() {
@@ -214,7 +102,42 @@ function run() {
             distribution.local.groups.put(workerConfig, workerGroup, (e, v) => {
                 distribution.workers.groups.put(workerConfig, workerGroup, (e, v) => {
                     // start the crawling
-                    compose_crawl_index();
+                    const urls = [
+                        'https://cs.brown.edu/courses/csci1380/sandbox/1',
+                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1a/index.html',
+                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/index.html',
+                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/index.html',
+                        'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/fact_6/index.html',
+                      ]
+            
+                      console.log("starting crawler")
+                    
+                      distribution.local.groups.get('workers', (e, group) => {
+                        const nodeToUrls = {}
+                        for(const url of urls) {
+                          const urlId = id.getID(url)
+                          const nodeKey = id.consistentHash(urlId, Object.keys(group))
+                          console.log(nodeKey, urlId)
+                          const node = group[nodeKey]
+                          if(nodeToUrls[nodeKey]) {
+                            nodeToUrls[nodeKey].push(url)
+                          }else {
+                            nodeToUrls[nodeKey] = [url]
+                          }
+                        }
+                    
+                        let iter = 0;
+                    
+                        for(const [key, value] of Object.entries(nodeToUrls)) {
+                          const remote = {node: group[key], service: 'store', method: 'put'}
+                          distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], remote, (e, v) => {
+                            iter += 1
+                            if(iter == Object.keys(nodeToUrls).length){ 
+                                compose_crawl_index();
+                            }
+                        })
+                        }
+                    })
                 });
             });
         });

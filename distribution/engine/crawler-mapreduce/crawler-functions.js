@@ -1,40 +1,3 @@
-// const mapper = (key, value) => {
-//     let newURLs = new Set([])
-//     let iter = 0;
-//     for(const url of value) {
-//         fetch(url, {
-//             method: "GET", 
-//             redirect: "follow"
-//         })
-//         .then(response => response.text())
-//         .then((html) => {
-//             distribution.local.store.put([{url: html}], {gid: 'crawlGroup', key: id.getID(url)}, (e, v) => {
-//                 if(e) {
-//                     cb(e, v)
-//                     return
-//                 }
-    
-//                 getURLs(url.substring(0, url.lastIndexOf("index.html")) + '/', html, (e, v) => {
-//                     if(e) {
-//                         cb(e, v)
-//                         return
-//                     }
-    
-//                     newURLs = new Set([...v, ...newURLs])
-//                     iter += 1
-//                     if(iter == value.length) {
-//                         console.log(newURLs)
-//                     }
-//                 })
-//             })
-//         })
-//         .catch(error => {
-//             console.log(error)
-//             cb(error, [])
-//         })
-//     }
-// }
-
 const mapper = (key, value) => {
     const {JSDOM} = require('jsdom')
 
@@ -69,6 +32,7 @@ const mapper = (key, value) => {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
         let newURLs = new Set();
 
+        
         const tasks = value.map(url => {
             return fetch(url, {
                 method: "GET", 

@@ -1,6 +1,5 @@
 const indexMapper = (key, value) => {
     const { JSDOM } = require('jsdom');
-    console.log(key, value);
     const out = {};
     for (const val of value) {
         const firstKey = Object.keys(val)[0];
@@ -43,21 +42,6 @@ const indexMapper = (key, value) => {
 let indexReducer = (key, values) => {
     const fs = require('fs');
     const path = require("path");
-    console.log("IN REDUCER - here is key");
-    console.log(key);
-    console.log("IN REDUCER - here is value");
-    console.log(values);
-    function isValidURL(str) {
-        try {
-            new URL(str);
-            return true;
-        } catch (_) {
-            return false;
-        }
-    };
-    if (isValidURL(key)) {
-        return;
-    }
     const num_docs = 0;
 
     const documentsWithWord = values.length;
