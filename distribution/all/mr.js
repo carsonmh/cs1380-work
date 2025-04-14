@@ -66,15 +66,20 @@ function mr(config) {
 
             const keys = configuration.keys
             let nodeToKeys = {}
-
-            for(const key of Object.keys(group)) {
-              nodeToKeys[key] = []
-            }
-
-            for (const key of keys) {
-              const node = id.consistentHash(id.getID(key), Object.keys(group))
-              if (nodeToKeys[node]) {
-                nodeToKeys[node].push(key)
+            if(keys.length == 1 && keys[0] == 'urls') {
+              for(key of Object.keys(group)) {
+                nodeToKeys[key] = ['urls']
+              }
+            }else {
+              for(const key of Object.keys(group)) {
+                nodeToKeys[key] = []
+              }
+  
+              for (const key of keys) {
+                const node = id.consistentHash(id.getID(key), Object.keys(group))
+                if (nodeToKeys[node]) {
+                  nodeToKeys[node].push(key)
+                }
               }
             }
 
@@ -115,12 +120,14 @@ function mr(config) {
           return
         }
 
+        const id = require('../util/id')
+
+        console.log(obj.keys, id.getSID(distribution.node.config))
         for (const key of obj.keys) {
           distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
             distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
             distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
               returnedService.map(key, data).then(result => {
-                // const result = returnedService.map(key, data)
                 if(Array.isArray(result)) {
                   arr = arr.concat(result)
                 }else {
@@ -219,39 +226,41 @@ function mr(config) {
           }
 
           for(const key of keys) {
-            console.log(key)
             if(key.includes('shuffleValue')) {
               distribution.local.store.get({key: key, gid: obj.gid}, (e, v) => {
-                i += 1
-                for(const mapping of v) {
-                  const key = Object.keys(mapping)[0]
-                  const value = mapping[key]
-                  if(map[key]) {
-                    map[key].push(value)
-                  }else {
-                    map[key] = [value]
-                  }
-                }
-  
-  
-                if(i == keys.length) {
-                  let res = []
-                  distribution.local.routes.get(obj.serviceNames.reduceServiceName, (e, returnedService) => {
-                    for(const [key, value] of Object.entries(map)){ 
-                      const output = returnedService.reduce(key, value)
-                      res.push(output)
+                distribution.local.store.del({key: key, gid: obj.gid}, (e, v) => {
+                  i += 1
+                  for(const mapping of v) {
+                    const key = Object.keys(mapping)[0]
+                    const value = mapping[key]
+                    if(map[key]) {
+                      map[key].push(value)
+                    }else {
+                      map[key] = [value]
                     }
-                    
-                    distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
-                      const operatorNode = obj.node
-                      obj.operation = 'reduce_sync'
-                      obj.node = distribution.node.config
-                      distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
-                        cb(null, null) // TEMP
+                  }
+    
+    
+                  if(i == keys.length) {
+                    let res = []
+                    distribution.local.routes.get(obj.serviceNames.reduceServiceName, (e, returnedService) => {
+                      for(const [key, value] of Object.entries(map)){ 
+                        const output = returnedService.reduce(key, value)
+                        res.push(output)
+                      }
+                      
+                      const key = 'urls'
+                      distribution.local.store.put(res, { key: key, gid: obj.gid }, (e, v) => {
+                        const operatorNode = obj.node
+                        obj.operation = 'reduce_sync'
+                        obj.node = distribution.node.config
+                        distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                          cb(null, null) // TEMP
+                        })
                       })
                     })
-                  })
-                }
+                  }
+                })
               })
             }else {
               i += 1

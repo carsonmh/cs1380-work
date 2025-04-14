@@ -36,7 +36,6 @@
 // }
 
 const mapper = (key, value) => {
-    console.log('mapping?')
     const {JSDOM} = require('jsdom')
 
     function getURLs(baseURL, html, cb) {
@@ -61,7 +60,6 @@ const mapper = (key, value) => {
 
             cb(null, newURLs)
         }catch (error) {
-            console.log(error)
             cb(error, null)
         }
     }
@@ -79,13 +77,11 @@ const mapper = (key, value) => {
             .then(response => response.text())
             .then(html => {
                 return new Promise((res, rej) => {
-                    distribution.local.store.put([{ [url]: html }], { gid: 'crawlGroup', key: id.getID(url) }, (e, v) => {
-                        console.log('put')
+                    distribution.local.store.put([{ [url]: html }], { gid: 'workers', key: id.getID(url) }, (e, v) => {
                         if (e) return rej(e);
 
                         const baseURL = url.includes('index.html') ? url.substring(0, url.lastIndexOf("index.html")) + '/' : url;
                         getURLs(baseURL, html, (e, v) => {
-                            console.log(v)
                             if (e) return rej(e);
                             for (const u of v) newURLs.add({[u]: u});
                             res();
@@ -107,7 +103,7 @@ const mapper = (key, value) => {
 }
 
 const reducer = (key, values) => {
-    return values
+    return values[0]
 }
 
 module.exports = { mapper, reducer }
