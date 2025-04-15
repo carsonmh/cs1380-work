@@ -1,87 +1,99 @@
+// let index_list = [];
+
 const indexMapper = (key, value) => {
-    const { JSDOM } = require('jsdom');
-    const out = {};
-    for (const val of value) {
-        const firstKey = Object.keys(val)[0];
-        // first key of value
-        const dom = new JSDOM(val[firstKey]);
-        const textContent = dom.window.document.body.textContent;
-        // console.log("here is text content");
-        // console.log(textContent);
-        const cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
-        const words = cleanText.split(' ').filter((e) => e.length > 0);
-        // console.log("here are words");
-        // console.log(words);
-        
-        let totalCount = words.length;
-        words.forEach((word) => {
-          if(out[word]) {
-            out[word].itemCount += 1
-          }else {
-            out[word] = {documentId: firstKey, wordCount: totalCount, itemCount: 1, document: value}
-          }
-        });
-    }
-
-    let res = []
-    for(const [key, value] of Object.entries(out)) {
-      res.push({[key]: value})
-    }
-
-    // return res; -> previous non promise map reduce 
-    return new Promise((resolve, reject) => {
-        try {
-            resolve(res);
-        } catch (err) {
-            reject(err);
+  const { JSDOM } = require('jsdom');
+  // console.log("I AM IN INDEX MAPPER");
+  // console.log(key);
+  const out = {};
+  for (const val of value) {
+      const firstKey = Object.keys(val)[0];
+      // first key of value
+      const dom = new JSDOM(val[firstKey]);
+      // const dom = new JSDOM(val[firstKey], {
+      //   url: "https://www.gutenberg.org" 
+      // });
+      const textContent = dom.window.document.body.textContent;
+      // console.log("here is text content");
+      // console.log(textContent);
+      const cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
+      const words = cleanText.split(' ').filter((e) => e.length > 0);
+      // console.log("here are words");
+      // console.log(words);
+      
+      let totalCount = words.length;
+      words.forEach((word) => {
+        if(out[word]) {
+          out[word].itemCount += 1
+        }else {
+          out[word] = {documentId: firstKey, wordCount: totalCount, itemCount: 1, document: value} // deleted document: value
         }
-    });
+      });
+  }
+
+  let res = []
+  for(const [key, value] of Object.entries(out)) {
+    res.push({[key]: value})
+  }
+  // console.log("here is res");
+  // console.log(res);
+
+  // return res; -> previous non promise map reduce 
+  return new Promise((resolve, reject) => {
+      try {
+          resolve(res);
+      } catch (err) {
+          reject(err);
+      }
+  });
 };
 
 // Reduce function: calculate TF-IDF for each word
 let indexReducer = (key, values) => {
-    const fs = require('fs');
-    const path = require("path");
-    const num_docs = 0;
+  const fs = require('fs');
+  const path = require("path");
+  const num_docs = 0;
+  // console.log("i am in index reducer here is the key and values");
+  // console.log(key);
+  // console.log(values);
 
-    const documentsWithWord = values.length;
+  const documentsWithWord = values.length;
 
-    const idf = Math.log10( num_docs/ documentsWithWord * 1.0)
+  const idf = Math.log10( num_docs/ documentsWithWord * 1.0)
 
-    let res = {}
+  let res = {}
 
-    for(const value of values) {
-      const amountOfTimesItem = value.itemCount
-      const totalAmountOfItems = value.wordCount
-      const tf = amountOfTimesItem / totalAmountOfItems * 1.0
+  for(const value of values) {
+    const amountOfTimesItem = value.itemCount
+    const totalAmountOfItems = value.wordCount
+    const tf = amountOfTimesItem / totalAmountOfItems * 1.0
 
-      if(!res[key]) {
-        res[key] = {}
-      }
-
-      res[key][value.documentId] = Math.round((tf * idf) * 100) / 100;
+    if(!res[key]) {
+      res[key] = {}
     }
 
-    for (const word in res) {
+    res[key][value.documentId] = Math.round((tf * idf) * 100) / 100;
+  }
 
-        const docScores = res[word]; 
+  for (const word in res) {
 
-        const outputArray = Object.entries(docScores).map(([docID, score]) => {
-          const url = global.urlMap?.[docID] || docID;
-          return [url, score];
-        });
+      const docScores = res[word]; 
+
+      const outputArray = Object.entries(docScores).map(([docID, score]) => {
+        const url = global.urlMap?.[docID] || docID;
+        return [url, score];
+      });
+    
+      const serializedData = global.distribution.util.serialize(outputArray);
+    
+      const dirPath = `store/${global.distribution.node.config.port}/workers`;
+
+      fs.mkdirSync(dirPath, { recursive: true });
       
-        const serializedData = global.distribution.util.serialize(outputArray);
-      
-        const dirPath = `store/${global.distribution.node.config.port}/workers`;
+      const filePath = path.join(dirPath, `${word}.txt`);
 
-        fs.mkdirSync(dirPath, { recursive: true });
-        
-        const filePath = path.join(dirPath, `${word}.txt`);
-
-        fs.writeFileSync(filePath, serializedData, 'utf8');
-    }
-    return res
+      fs.writeFileSync(filePath, serializedData, 'utf8');
+  }
+  return res
 };
 
 module.exports = {indexMapper, indexReducer}

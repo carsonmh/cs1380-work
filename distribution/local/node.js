@@ -60,6 +60,12 @@ const start = function(callback) {
       You need to call the service with the method and arguments provided in the request.
       Then, you need to serialize the result and send it back to the caller.
       */
+      // console.log("HERE IS THE MESSAGE");
+      // console.log(message);
+      // console.log("HERE IS THE SERVICE");
+      // console.log(service);
+      // console.log("here is the group id");
+      // console.log(groupId);
       let serviceName = service;
       if(groupId != 'local') {
         serviceName = {gid: groupId, service: serviceName}
@@ -122,6 +128,8 @@ const start = function(callback) {
 
   server.on('error', (error) => {
     // server.close();
+    console.log("HERE IS THE SERVER ERROR");
+    console.log(error);
     log(`Server error: ${error}`);
     // console.log(error)
     throw error;

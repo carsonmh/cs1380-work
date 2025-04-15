@@ -60,6 +60,7 @@ status.spawn = function(configuration, callback) {
 
 status.stop = function(callback) {
   const status = require('@brown-ds/distribution').local.status
+  // console.log("STOP WAS CALLED!!!!");
   status.stop(callback)
 };
 

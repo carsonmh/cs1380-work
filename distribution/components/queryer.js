@@ -10,7 +10,7 @@ const n1 = { ip: '127.0.0.1', port: 7110 };
 const n2 = { ip: '127.0.0.1', port: 7111 };
 const n3 = { ip: '127.0.0.1', port: 7112 };
 
-const tfidfConfig = { gid: 'tfidf' };
+const tfidfConfig = { gid: 'workers' };
 
 const query = process.argv.slice(2).join(' ').toLowerCase().replace(/[^\w\s]/g, '').trim();
 
@@ -29,7 +29,7 @@ function end() {
 
 function do_the_query() {
 
-    distribution.local.groups.get('tfidf', (err, group) => {
+    distribution.local.groups.get('workers', (err, group) => {
         if (err) {
             console.error('Error getting group:', err);
             process.exit(1);
@@ -55,7 +55,7 @@ function do_the_query() {
             const port = group[nodeKey].port;
 
             for (const word of words) {
-                const tfidfPath = path.join(`store/${port}/tfidf/${word}.txt`);
+                const tfidfPath = path.join(`store/${port}/workers/${word}.txt`);
 
                 if (fs.existsSync(tfidfPath)) {
                     try {

@@ -10,7 +10,11 @@ function store(config) {
     get: (configuration, callback) => {
       if(!configuration) {
         let arr = []
+        // console.log("I AM IN DISTRIBUTED STORE.GET WITH NULL AS THE ARGUMENT");
         distribution[context.gid].comm.send([{gid: context.gid, key: null}], {service: 'store', method: 'get'}, (e, v) => {
+          // console.log("I AM RETURNED FROM COMM.ALL WITH ERROR VALUE");
+          // console.log(e);
+          // console.log(v);
           for(const [key, value] of Object.entries(v)){
             arr = arr.concat(value)
           }

@@ -15,7 +15,7 @@
 #   fi
 # done
 
-for port in {7110..7116}
+for port in {7110..7125}
 do
   # Get the PID of the process bound to the port
   pid=$(lsof -t -i :$port)

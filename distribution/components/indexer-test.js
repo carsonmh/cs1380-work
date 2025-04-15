@@ -17,6 +17,8 @@ const n3 = { ip: '127.0.0.1', port: 7112 };
 
 const tfidfConfig = { gid: 'tfidf' };
 
+let {indexMapper, indexReducer} = require('./indexer.js');
+
 function startNodes(callback) {
     distribution.local.status.spawn(n1, (e, v) => {
         distribution.local.status.spawn(n2, (e, v) => {
@@ -51,103 +53,105 @@ function isSHA256(filename) {
 function calculate_document_number() {
     // this should be crawler.get 
     distribution.tfidf.store.get(null, (e, v) => {
+        let keys = [];
         // let node_num_doc = 0;
             v.forEach(key_name => {
                 if (isSHA256(key_name)) {
-                    number_of_documents ++;
+                    // number_of_documents ++;
+                    keys.push(key_name);
                 }
             });
-        console.log("here is number_of_documents");
-        console.log(number_of_documents);
-        do_tf_idf(v);
+        // console.log("here is number_of_documents");
+        // console.log(number_of_documents);
+        do_tf_idf(keys);
     });
 }
 
 
-function do_tf_idf(keys){
-    const mapper = (key, value) => {
-        const { JSDOM } = require('jsdom');
-        // console.log(value);
-        const firstKey = Object.keys(value)[0];
-        // first key of value
-        const dom = new JSDOM(value[firstKey]);
-        const textContent = dom.window.document.body.textContent;
-        console.log("here is text content");
-        console.log(textContent);
-        const cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
-        const words = cleanText.split(' ').filter((e) => e.length > 0);
-        console.log("here are words");
-        console.log(words);
-        const out = {};
-        let totalCount = words.length;
-        words.forEach((word) => {
-          if(out[word]) {
-            out[word].itemCount += 1
-          }else {
-            out[word] = {documentId: firstKey, wordCount: totalCount, itemCount: 1, document: value}
-          }
-        });
+function do_tf_idf(v){
+    // const mapper = (key, value) => {
+    //     const { JSDOM } = require('jsdom');
+    //     // console.log(value);
+    //     const firstKey = Object.keys(value)[0];
+    //     // first key of value
+    //     const dom = new JSDOM(value[firstKey]);
+    //     const textContent = dom.window.document.body.textContent;
+    //     console.log("here is text content");
+    //     console.log(textContent);
+    //     const cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
+    //     const words = cleanText.split(' ').filter((e) => e.length > 0);
+    //     console.log("here are words");
+    //     console.log(words);
+    //     const out = {};
+    //     let totalCount = words.length;
+    //     words.forEach((word) => {
+    //       if(out[word]) {
+    //         out[word].itemCount += 1
+    //       }else {
+    //         out[word] = {documentId: firstKey, wordCount: totalCount, itemCount: 1, document: value}
+    //       }
+    //     });
     
-        let res = []
-        for(const [key, value] of Object.entries(out)) {
-          res.push({[key]: value})
-        }
+    //     let res = []
+    //     for(const [key, value] of Object.entries(out)) {
+    //       res.push({[key]: value})
+    //     }
     
-        return res;
-    };
+    //     return res;
+    // };
     
     // Reduce function: calculate TF-IDF for each word
-    let reducer = (key, values) => {
-        const fs = require('fs');
-        const path = require("path");
-        const num_docs = 0;
+    // let reducer = (key, values) => {
+    //     const fs = require('fs');
+    //     const path = require("path");
+    //     const num_docs = 0;
 
-        const documentsWithWord = values.length;
+    //     const documentsWithWord = values.length;
 
-        const idf = Math.log10( num_docs/ documentsWithWord * 1.0)
+    //     const idf = Math.log10( num_docs/ documentsWithWord * 1.0)
     
-        let res = {}
+    //     let res = {}
 
-        for(const value of values) {
-          const amountOfTimesItem = value.itemCount
-          const totalAmountOfItems = value.wordCount
-          const tf = amountOfTimesItem / totalAmountOfItems * 1.0
+    //     for(const value of values) {
+    //       const amountOfTimesItem = value.itemCount
+    //       const totalAmountOfItems = value.wordCount
+    //       const tf = amountOfTimesItem / totalAmountOfItems * 1.0
 
-          if(!res[key]) {
-            res[key] = {}
-          }
+    //       if(!res[key]) {
+    //         res[key] = {}
+    //       }
 
-          res[key][value.documentId] = Math.round((tf * idf) * 100) / 100;
-        }
+    //       res[key][value.documentId] = Math.round((tf * idf) * 100) / 100;
+    //     }
 
-        for (const word in res) {
-            const docScores = res[word]; 
+    //     for (const word in res) {
+    //         const docScores = res[word]; 
 
-            const outputArray = Object.entries(docScores).map(([docID, score]) => {
-              const url = global.urlMap?.[docID] || docID;
-              return [url, score];
-            });
+    //         const outputArray = Object.entries(docScores).map(([docID, score]) => {
+    //           const url = global.urlMap?.[docID] || docID;
+    //           return [url, score];
+    //         });
           
-            const serializedData = global.distribution.util.serialize(outputArray);
+    //         const serializedData = global.distribution.util.serialize(outputArray);
           
-            const dirPath = `store/${global.distribution.node.config.port}/tfidf`;
+    //         const dirPath = `store/${global.distribution.node.config.port}/tfidf`;
 
-            fs.mkdirSync(dirPath, { recursive: true });
+    //         fs.mkdirSync(dirPath, { recursive: true });
             
-            const filePath = path.join(dirPath, `${word}.txt`);
+    //         const filePath = path.join(dirPath, `${word}.txt`);
 
-            fs.writeFileSync(filePath, serializedData, 'utf8');
-        }
-        return res
-    };
+    //         fs.writeFileSync(filePath, serializedData, 'utf8');
+    //     }
+    //     return res
+    // };
 
-    const serializedReducer = global.distribution.util.serialize(reducer);
+    const serializedReducer = global.distribution.util.serialize(indexReducer);
 
-    const updatedSerializedReducer = serializedReducer.replace('num_docs = 0;', `num_docs = ${number_of_documents};`);
+    const updatedSerializedReducer = serializedReducer.replace('num_docs = 0;', `num_docs = ${v.length};`);
 
-    reducer = global.distribution.util.deserialize(updatedSerializedReducer);
+    const reducer = global.distribution.util.deserialize(updatedSerializedReducer);
 
-    distribution.tfidf.mr.exec({keys: keys, map: mapper, reduce: reducer}, (e, v) => {
+    distribution.tfidf.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducer}, (e, v) => {
         try {
         //   console.log(v === expected);
             // serialize v to a file called indexer_output.txt
@@ -169,9 +173,10 @@ function do_tf_idf(keys){
 
 // this is for testing purposes only (this is not acually part of the indexer just setting up data)
 function put_things_in_local_storage() {
-    console.log("put things in local storage");
-    const obj1 = { "hello.com": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Home Page</title>\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            margin: 0;\n            padding: 0;\n            background-color: #f4f4f4;\n            color: #333;\n            text-align: center;\n        }\n\n        .container {\n            max-width: 800px;\n            margin: auto;\n            padding: 20px;\n        }\n\n        h1 {\n            color: #4CAF50;\n        }\n\n        a {\n            color: #5D4037;\n            text-decoration: none;\n            font-size: 1.2em;\n        }\n\n        a:hover {\n            color: #FF5722;\n        }\n\n        .footer {\n            margin-top: 30px;\n            padding: 10px;\n            background-color: #3F51B5;\n            color: white;\n            text-align: center;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <h1>Welcome to CS1380 simple links</h1>\n        <p>Check out my <a href=\"level_1a/index.html\">Some stuff</a>.</p>\n        <p>Check out my <a href=\"level_1b/index.html\">Some more stuff</a>.</p>\n        <p>Check out a few <a href=\"level_1c/index.html\">Some more more stuff</a>.</p>\n    </div>\n    <div class=\"footer\">\n        <p>© 2023 CS1380. All rights reserved.</p>\n    </div>\n</body>\n</html>\n"};
-    const obj2 = { "bye.com": `<!DOCTYPE html>
+    // console.log("put things in local storage");
+
+    const obj1 = [{ "hello.com": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Home Page</title>\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            margin: 0;\n            padding: 0;\n            background-color: #f4f4f4;\n            color: #333;\n            text-align: center;\n        }\n\n        .container {\n            max-width: 800px;\n            margin: auto;\n            padding: 20px;\n        }\n\n        h1 {\n            color: #4CAF50;\n        }\n\n        a {\n            color: #5D4037;\n            text-decoration: none;\n            font-size: 1.2em;\n        }\n\n        a:hover {\n            color: #FF5722;\n        }\n\n        .footer {\n            margin-top: 30px;\n            padding: 10px;\n            background-color: #3F51B5;\n            color: white;\n            text-align: center;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <h1>Welcome to CS1380 simple links</h1>\n        <p>Check out my <a href=\"level_1a/index.html\">Some stuff</a>.</p>\n        <p>Check out my <a href=\"level_1b/index.html\">Some more stuff</a>.</p>\n        <p>Check out a few <a href=\"level_1c/index.html\">Some more more stuff</a>.</p>\n    </div>\n    <div class=\"footer\">\n        <p>© 2023 CS1380. All rights reserved.</p>\n    </div>\n</body>\n</html>\n"}];
+    const obj2 = [{ "bye.com": `<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -227,9 +232,9 @@ function put_things_in_local_storage() {
             <p>© 2023 Our Company. All rights reserved.</p>
         </div>
     </body>
-    </html>`};
+    </html>`}];
     
-    const obj3 = { "iamok.com":
+    const obj3 = [{ "iamok.com":
         `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -315,7 +320,7 @@ function put_things_in_local_storage() {
             <p>© 2023 Portfolio. All rights reserved.</p>
         </div>
     </body>
-    </html>`};
+    </html>`}];
     // const obj1 = "machine learning is amazing";
     // const obj2 = "deep learning powers amazing systems";
     // const obj3 = "machine learning and deep learning are related";
@@ -334,7 +339,7 @@ function put_things_in_local_storage() {
 }
 
 function run() {
-    console.log("I am in run");
+    // console.log("I am in run");
 
     distribution.node.start((server) => {
         localServer = server;
@@ -355,7 +360,7 @@ function run() {
                     const crawlConfig = {gid: 'crawl'};
                     distribution.local.groups.put(crawlConfig, crawlGroup, (e, v) => {
                         distribution.crawl.groups.put(crawlConfig, crawlGroup, (e, v) => {
-                            console.log("before put things in local storage");
+                            // console.log("before put things in local storage");
                             put_things_in_local_storage();
                         });
                     });

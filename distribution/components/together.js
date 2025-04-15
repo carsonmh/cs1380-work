@@ -12,6 +12,18 @@ let localServer = null;
 const n1 = { ip: '127.0.0.1', port: 7110 };
 const n2 = { ip: '127.0.0.1', port: 7111 };
 const n3 = { ip: '127.0.0.1', port: 7112 };
+const n4 = { ip: '127.0.0.1', port: 7113 };
+const n5 = { ip: '127.0.0.1', port: 7114 };
+const n6 = { ip: '127.0.0.1', port: 7115 };
+const n7 = { ip: '127.0.0.1', port: 7116 };
+const n8 = { ip: '127.0.0.1', port: 7117 };
+const n9 = { ip: '127.0.0.1', port: 7118 };
+const n10 = { ip: '127.0.0.1', port: 7119 };
+const n11 = { ip: '127.0.0.1', port: 7120 };
+const n12 = { ip: '127.0.0.1', port: 7121 };
+const n13= { ip: '127.0.0.1', port: 7122 };
+const n14 = { ip: '127.0.0.1', port: 7123 };
+const n15 = { ip: '127.0.0.1', port: 7124 };
 
 
 const {mapper, reducer} = require('../engine/crawler-mapreduce/crawler-functions.js');
@@ -34,12 +46,35 @@ function startNodes(callback) {
     distribution.local.status.spawn(n1, (e, v) => {
         distribution.local.status.spawn(n2, (e, v) => {
             distribution.local.status.spawn(n3, (e, v) => {
-                callback();
-            });
+                // distribution.local.status.spawn(n4, (e, v) => {
+                //     distribution.local.status.spawn(n5, (e, v) => {
+                //         distribution.local.status.spawn(n6, (e, v) => {
+                //             distribution.local.status.spawn(n7, (e, v) => {
+                //                 distribution.local.status.spawn(n8, (e, v) => {
+                //                     distribution.local.status.spawn(n9, (e, v) => {
+                //                         distribution.local.status.spawn(n10, (e, v) => {
+                //                             distribution.local.status.spawn(n11, (e, v) => {
+                //                                 distribution.local.status.spawn(n12, (e, v) => {
+                //                                     distribution.local.status.spawn(n13, (e, v) => {
+                //                                         distribution.local.status.spawn(n14, (e, v) => {
+                //                                             distribution.local.status.spawn(n15, (e, v) => {
+                                                                callback();
+                                                            });
+                //                                         });
+                //                                     });
+                //                                 });
+                //                             });
+                //                         });
+                //                     });
+                //                 });
+                //             });
+                //         });
+                //     });
+                // });
+            // });
         });
     });
 }
-
 
 
 // use this function to check the number of urls (number of documents or not)
@@ -51,29 +86,40 @@ function isSHA256(filename) {
 // calculates number of documents
 function calculate_document_number() {
     distribution.workers.store.get(null, (e, v) => {
+        // console.log("HERE IS THE STORE.GET ERROR AND VALUE");
+        // console.log(e);
+        // console.log(v);
         let realkeys =[];
             v.forEach(key_name => {
                 if (isSHA256(key_name)) {
                     realkeys.push(key_name);
                 }
             });
+        // console.log("real keys");
+        // console.log("value of store.get");
+        // console.log(v);
+        // console.log(realkeys);
         do_tf_idf(realkeys);
     });
 }
 
-
 function do_tf_idf(keys){
+
     const serializedReducer = global.distribution.util.serialize(indexReducer);
 
     const updatedSerializedReducer = serializedReducer.replace('num_docs = 0;', `num_docs = ${keys.length};`);
 
     let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
 
-    // can't just be URLs becaues it is searching by key
+    // can't just be URLs becaues it is searching by key -> change to ['indexer'] (this is wrong because the indexer is )
     distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
         try {
-        compose_crawl_index()
-        //   end();
+            // console.log("indexer output");
+            // console.log("Here is error");
+            // console.log(e);
+            // console.log(v);
+            compose_crawl_index();
+            // end();
         } catch (e) {
           console.log(e);
         }
@@ -84,6 +130,9 @@ const workerConfig = {  gid: 'workers' };
 
 function compose_crawl_index() {
     distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+        // console.log("returned with error and then value");
+        // console.log(e);
+        // console.log(v);
         calculate_document_number();
     })
 }
@@ -95,7 +144,18 @@ function run() {
         workerGroup[id.getSID(n1)] = n1;
         workerGroup[id.getSID(n2)] = n2;
         workerGroup[id.getSID(n3)] = n3;
-
+        // workerGroup[id.getSID(n4)] = n4;
+        // workerGroup[id.getSID(n5)] = n5;
+        // workerGroup[id.getSID(n6)] = n6;
+        // workerGroup[id.getSID(n7)] = n7;
+        // workerGroup[id.getSID(n8)] = n8;
+        // workerGroup[id.getSID(n9)] = n9;
+        // workerGroup[id.getSID(n10)] = n10;
+        // workerGroup[id.getSID(n11)] = n11;
+        // workerGroup[id.getSID(n12)] = n12;
+        // workerGroup[id.getSID(n13)] = n13;
+        // workerGroup[id.getSID(n14)] = n14;
+        // workerGroup[id.getSID(n15)] = n15;
 
         startNodes(() => {
             // this is just for testing purposes only 
@@ -103,10 +163,10 @@ function run() {
                 distribution.workers.groups.put(workerConfig, workerGroup, (e, v) => {
                     // start the crawling
                     const urls = [
-                        'https://www.gutenberg.org',
+                        'https://atlas.cs.brown.edu/data/gutenberg/',
                     ]
             
-                      console.log("starting crawler")
+                    //   console.log("starting crawler")
                     
                       distribution.local.groups.get('workers', (e, group) => {
                         const nodeToUrls = {}
@@ -125,9 +185,16 @@ function run() {
                         }
                     
                         let iter = 0;
+                        // console.log("here is the node to urls");
+                        // console.log(nodeToUrls);
+                        // console.log("here is current node");
+                        // console.log(distribution.node);
                     
                         for(const [key, value] of Object.entries(nodeToUrls)) {
                           const remote = {node: group[key], service: 'store', method: 'put'}
+                        //   console.log("putting value/it on this node");
+                        //   console.log(value);
+                        //   console.log(group[key]);
                           distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], remote, (e, v) => {
                             iter += 1
                             if(iter == Object.keys(nodeToUrls).length){ 

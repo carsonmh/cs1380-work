@@ -61,6 +61,8 @@ function put(state, configuration, callback) {
 
 function get(configuration, callback) {
   let [key, gid] = getKeyAndGid(configuration)
+  // console.log("IN STORE GET HERE IS KEY AND GID");
+  // console.log(key, gid);
 
   if(!key && !gid){ 
     callback(new Error("must provide configuraiton"), null)

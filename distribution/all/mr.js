@@ -49,6 +49,8 @@ function mr(config) {
         obj.operation = 'worker_sync'
         obj.node = distribution.node.config
         distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+          // console.log("sending worker sync");
+          // console.log("eggeo");
           cb(null, null)
         })
       }
@@ -56,6 +58,10 @@ function mr(config) {
       function workerSync(obj, cb) {
         const memberAmount = obj.memberCount // TODO: don't hardcode this value
         count += 1
+        // console.log("ehre is count");
+        // console.log(count);
+        // console.log("here is member amount");
+        // console.log(memberAmount);
         if(count == memberAmount){ 
           count = 0
           distribution.local.groups.get(obj.gid, (e, group) => {
@@ -66,11 +72,11 @@ function mr(config) {
 
             const keys = configuration.keys
             let nodeToKeys = {}
-            if(keys.length == 1 && keys[0] == 'urls') {
-              for(key of Object.keys(group)) {
-                nodeToKeys[key] = ['urls']
+            if (keys.length == 1 && (keys[0] == 'urls' || keys[0] == 'indexer')) {
+              for(const key of Object.keys(group)) { // was not const before
+                nodeToKeys[key] = [keys[0]] // ['urls']
               }
-            }else {
+            } else {
               for(const key of Object.keys(group)) {
                 nodeToKeys[key] = []
               }
@@ -83,6 +89,11 @@ function mr(config) {
               }
             }
 
+            // console.log("here is the node to urls in map reduce");
+            // console.log(nodeToKeys);
+            // console.log("here is current node");
+            // console.log(distribution.node);
+
             let counter = 0
 
             const total = Object.keys(nodeToKeys).length
@@ -94,12 +105,14 @@ function mr(config) {
                 [object], remote, (e, v) => {
                   counter += 1
                   if (counter == total) {
+                    // console.log("finished worker sync");
                     cb(null, null)
                   }
                 })
               }
             })
-          }else {
+          } else {
+            // console.log("BAD BAD BAD BAD BAD NOT ALL NODES FULLY CONNECTED");
             cb(null, null)
           }
       }
@@ -108,6 +121,10 @@ function mr(config) {
         let arr = []
         let counter = 0
         let total = obj.keys.length
+        // console.log("i am in start map");
+
+        // console.log("here is obj KEYS I AM IN START MAP");
+        // console.log(obj.keys);
         if(obj.keys.length == 0){ 
           distribution.local.store.put([], { key: 'mappedValues', gid: obj.gid }, (e, v) => {
             const operatorNode = obj.node
@@ -121,8 +138,13 @@ function mr(config) {
         }
 
         function go(cb) {
+          // console.log("I am in go!!!");
           for (const key of obj.keys) {
             distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
+              // console.log("here is the data from store.get");
+              // console.log(data);
+              // console.log("here is the error");
+              // console.log(e);
               // if(e){ 
                 // console.log(cb.toString()) // TODO: gracefully end when out of URLs. 
               //   cb(e, null)
@@ -138,6 +160,10 @@ function mr(config) {
                   }
 
                   counter += 1
+                  // console.log("here is the counter");
+                  // console.log(counter);
+                  // console.log("here is the total");
+                  // console.log(total);
     
                   if (counter == total) {
                     distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
@@ -154,19 +180,42 @@ function mr(config) {
             })
             })
           }
+          // if there is no data -> could be the case in the indexer after we have no urls left (?)
+          if (obj.keys.length == 0) {
+            const arr = [];
+            distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
+              const operatorNode = obj.node
+              obj.operation = 'map_sync'
+              obj.node = distribution.node.config
+              distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                cb(null, null)
+              })
+            })
+          }
+          return;
         }
 
         if(obj.keys.length == 1 && obj.keys[0] == 'indexer') {
-          distribution.local.store.get({gid: obj.gid, key: null}, (e, keys) => {
+          // console.log("IN THE INDEXER CASE!!!");
+          
+          distribution.local.store.get({gid: obj.gid, key: null}, (e, keys) => { // not local make it group
             function isSHA256(filename) {
               const sha256Regex = /^[a-f0-9]{64}$/i;
               return sha256Regex.test(filename);
             }
 
             obj.keys = keys.filter(key => key != 'urls' && isSHA256(key))
+            // console.log("here is the new object -> should be 3 indexer nodes?");
+            // console.log(obj);
+            // console.log("here is node");
+            // console.log(distribution.node);
+            // console.log("here is obj.keys -> I am in startMap phase of mapreduce");
+            // console.log(obj.keys);
             go(cb)
           })
         }else {
+          // console.log("IN THE ELSE CASE");
+          // console.log(obj.keys);
           go(cb)
         }
       }
@@ -174,6 +223,9 @@ function mr(config) {
       function mapSync(obj, cb) {
         const memberAmount = obj.memberCount
         count += 1
+        // console.log("here is map sync");
+        // console.log(memberAmount);
+        // console.log(count);
         if(count == memberAmount){ 
           count = 0
           distribution[obj.gid].comm.send(
@@ -205,6 +257,9 @@ function mr(config) {
       function reduceSync(obj, cb) {
         const memberAmount = obj.memberCount
         count += 1
+        // console.log("I AM IN REDUCE SYNC");
+        // console.log(count);
+        // console.log(memberAmount);
         if(count == memberAmount){ 
           count = 0
           cb(null, null)
@@ -227,6 +282,7 @@ function mr(config) {
       }
 
       function startReduce(obj, cb) {
+        // console.log("I AM IN START REDUCE");
         distribution.local.store.get({key: null, gid: obj.gid}, (e, keys) => {
           let map = {}
           let i = 0
@@ -270,8 +326,8 @@ function mr(config) {
                       let key;
                       
                       if(obj.keys.length == 1 && obj.keys[0] == 'urls') {
-                        key = 'urls'
-                      }else {
+                        key = 'urls' // 'urls'
+                      } else {
                         key = 'result'
                       }
 
@@ -387,6 +443,8 @@ function mr(config) {
     const mapService = { map: configuration.map }
     const reduceService = { reduce: configuration.reduce }
     const shuffleService = { shuffle: shuffle }
+
+    // console.log("in map reduce");
 
     distribution.local.routes.put(notifyService, notifyServiceName, (e, v) => {
       distribution[context.gid].routes.put(notifyService, notifyServiceName, (e, v) => {

@@ -25,6 +25,10 @@ function comm(config) {
     let errors = {}
     let count = 0
 
+    // console.log("I AM IN ALL.COMM HERE IS MESSAGE AND CONFIGURATION");
+    // console.log(message);
+    // console.log(configuration);
+
     distribution.local.groups.get(context.gid, (e, group) => {
       if(e) {
         callback(e, null)

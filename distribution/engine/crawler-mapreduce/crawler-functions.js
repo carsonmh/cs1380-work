@@ -4,6 +4,9 @@ const mapper = (key, value) => {
     function getURLs(baseURL, html, cb) {
         try {
             const parsedHTML = new JSDOM(html);
+            // const parsedHTML = new JSDOM(html, {
+            //     url: "https://www.gutenberg.org",
+            // });
             const aTags = parsedHTML.window.document.querySelectorAll('a');
             let newURLs = new Set()
             for(const tag of aTags) {
@@ -31,7 +34,10 @@ const mapper = (key, value) => {
         const id = require("../util/id")
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
         let newURLs = new Set();
-
+        // console.log("HERE IS THE VALUE");
+        // console.log(value);
+        // console.log("here is the key");
+        // console.log(key);
         const tasks = value.map(url => {
             return fetch(url, {
                 method: "GET", 
@@ -40,6 +46,10 @@ const mapper = (key, value) => {
             .then(response => response.text())
             .then(html => {
                 return new Promise((res, rej) => {
+                    // console.log("here is html");
+                    // console.log(html);
+                    // console.log("here is url");
+                    // console.log(url);
                     distribution.local.store.put([{ [url]: html }], { gid: 'workers', key: id.getID(url) }, (e, v) => {
                         if (e) return rej(e);
 
@@ -60,6 +70,7 @@ const mapper = (key, value) => {
             })
             .catch(err => {
                 console.error(err);
+                // console.log(global.distribution.node);
                 reject(err);
             });
     });
