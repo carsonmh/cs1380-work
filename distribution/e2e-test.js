@@ -103,7 +103,7 @@ async function start() {
   });
 }
 
-let iterations = 0;
+let iterations = args.iterations ? args.iterations : 1;
 
 function run(cb) {
   distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
@@ -157,8 +157,13 @@ function run(cb) {
 //   });
 // };
 
-global.nodeConfig = args.ip;
-global.nodeConfig = args.port;
+global.nodeConfig = {
+  ip: args.ip,
+  port: args.port,
+  onStart: () => {
+    console.log(`Node started!`);
+  },
+}
 
 distribution.node.start((server) => {
   localServer = server;
