@@ -120,6 +120,7 @@ function run(cb) {
       distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
         if(iterations < 1) {
           iterations += 1
+          console.log("running iteration", iterations-1)
           run(cb)
         } else {
           console.log("stopping for now...")
