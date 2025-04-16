@@ -123,20 +123,21 @@ function run(cb) {
           iterations += 1
           run(cb)
         } else {
+          console.log("stopping for now...")
           // Stop all worker nodes
-          const stopPromises = Object.values(crawlGroupGroup).map(node => {
-            return new Promise((resolve) => {
-              const remote = {service: 'status', method: 'stop', node};
-              distribution.local.comm.send([], remote, (e, v) => {
-                resolve();
-              });
-            });
-          });
+          // const stopPromises = Object.values(crawlGroupGroup).map(node => {
+          //   return new Promise((resolve) => {
+          //     const remote = {service: 'status', method: 'stop', node};
+          //     distribution.local.comm.send([], remote, (e, v) => {
+          //       resolve();
+          //     });
+          //   });
+          // });
 
-          Promise.all(stopPromises).then(() => {
-            localServer.close();
-            cb(null, null);
-          });
+          // Promise.all(stopPromises).then(() => {
+          //   localServer.close();
+          //   cb(null, null);
+          // });
         }
       })
     })
