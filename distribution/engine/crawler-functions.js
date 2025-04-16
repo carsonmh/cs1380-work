@@ -40,13 +40,14 @@ const mapper = (key, value) => {
                         toProcess.push(url)
                     }
                     if(counter == total){
+                        let maxURLs = 250
                         const id = require("../util/id")
                         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
                         let newURLs = new Set();
-                        if(toProcess.length > 500) {
+                        if(toProcess.length > maxURLs) {
                             console.log("greater")
-                            newURLs = new Set([...toProcess.slice(500)])
-                            toProcess = toProcess.slice(0, 500);
+                            newURLs = new Set([...toProcess.slice(maxURLs)])
+                            toProcess = toProcess.slice(0, maxURLs);
                         }
                         let tasks;
                         tasks = toProcess.map(async url => {
