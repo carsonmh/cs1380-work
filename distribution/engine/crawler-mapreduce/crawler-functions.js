@@ -3,13 +3,17 @@ const mapper = (key, value) => {
 
     function getURLs(baseURL, html, cb) {
         try {
-            const parsedHTML = new JSDOM(html);
-            // const parsedHTML = new JSDOM(html, {
-            //     url: "https://www.gutenberg.org",
-            // });
+
+            const regex = /href=["'](\/[^"']*)["']/g;
+            const urls = [...html.matchAll(/href=["'](\/[^"']*)["']/g)].map(match => match[1]);            const parsedHTML = new JSDOM(html, {
+                resources: "usable",
+                runScripts: "outside-only",
+            });
+
             const aTags = parsedHTML.window.document.querySelectorAll('a');
             let newURLs = new Set()
             for(const tag of aTags) {
+                // console.log(tag.href)
                 let newURL = ''
                 if(!tag.href) {
                     continue
@@ -30,49 +34,56 @@ const mapper = (key, value) => {
         }
     }
 
+
     return new Promise((resolve, reject) => {
         const id = require("../util/id")
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
         let newURLs = new Set();
-        // console.log("HERE IS THE VALUE");
-        // console.log(value);
-        // console.log("here is the key");
-        // console.log(key);
-        const tasks = value.map(url => {
-            return fetch(url, {
-                method: "GET", 
-                redirect: "follow"
-            })
-            .then(response => response.text())
-            .then(html => {
-                return new Promise((res, rej) => {
-                    // console.log("here is html");
-                    // console.log(html);
-                    // console.log("here is url");
-                    // console.log(url);
-                    distribution.local.store.put([{ [url]: html }], { gid: 'workers', key: id.getID(url) }, (e, v) => {
-                        if (e) return rej(e);
+        let tasks;
 
-                        const baseURL = url.includes('index.html') ? url.substring(0, url.lastIndexOf("index.html")) + '/' : url;
-                        getURLs(baseURL, html, (e, v) => {
-                            if (e) return rej(e);
-                            for (const u of v) newURLs.add({[u]: u});
-                            res();
-                        });
+
+        distribution.local.mem.get(key, (e, v) => {
+            distribution.local.mem.put(key, '', (e, n) => {
+                if(value && !v) {
+                    tasks = value.map(async url => {
+                        return fetch(url, {
+                            method: "GET", 
+                            redirect: "follow"
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            return new Promise((res, rej) => {
+                                distribution.local.store.put([{ [url]: html }], { gid: 'workers', key: id.getID(url) }, (e, v) => {
+                                    if (e) return res(e);
+            
+                                    const baseURL = url.includes('index.html') ? url.substring(0, url.lastIndexOf("index.html")) + '/' : url;
+                                    getURLs(baseURL, html, (e, v) => {
+                                        if (e) return rej(e);
+                                        for (const u of v) newURLs.add({[u]: u});
+                                        res();
+                                    });
+                                });
+                            });
+                        })
+                        .catch(error => {
+                            return new Promise((res, rej) => {
+                                res()
+                            })
+                        })
                     });
-                });
-            });
-        });
+                }else {
+                    tasks = [];
+                }
 
-        Promise.all(tasks)
-            .then(() => {
-                resolve([...newURLs]);
-            })
-            .catch(err => {
-                console.error(err);
-                // console.log(global.distribution.node);
-                reject(err);
-            });
+                Promise.all(tasks)
+                    .then(() => {
+                        resolve([...newURLs]);
+                    })
+                    .catch(err => {
+                        reject(err);
+                    });
+                })
+        })
     });
 }
 

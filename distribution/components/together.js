@@ -163,7 +163,7 @@ function run() {
                 distribution.workers.groups.put(workerConfig, workerGroup, (e, v) => {
                     // start the crawling
                     const urls = [
-                        'https://atlas.cs.brown.edu/data/gutenberg/',
+                        'https://law.justia.com/codes/alabama/2024/',
                     ]
             
                     //   console.log("starting crawler")
