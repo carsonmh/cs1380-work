@@ -50,6 +50,7 @@ function mr(config) {
         obj.operation = 'worker_sync'
         obj.node = distribution.node.config
         distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+          console.log(e, v)
           cb(null, null)
         })
       }
