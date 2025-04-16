@@ -44,6 +44,7 @@ function mr(config) {
   function exec(configuration, cb) {
     let count = 0
     function notify(obj, cb) {
+      console.log(obj)
       function operatorSync(obj, cb) {
         const operatorNode = obj.node
         obj.operation = 'worker_sync'
@@ -56,7 +57,6 @@ function mr(config) {
       function workerSync(obj, cb) {
         const memberAmount = obj.memberCount
         count += 1
-        console.log(count, memberAmount)
         if(count == memberAmount){ 
           count = 0
           distribution.local.groups.get(obj.gid, (e, group) => {
