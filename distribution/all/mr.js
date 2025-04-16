@@ -44,6 +44,7 @@ function mr(config) {
   function exec(configuration, cb) {
     let count = 0
     function notify(obj, cb) {
+      console.log('notify called', distribution.node)
       function operatorSync(obj, cb) {
         const operatorNode = obj.node
         obj.operation = 'worker_sync'
