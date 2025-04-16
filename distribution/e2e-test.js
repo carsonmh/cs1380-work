@@ -1,8 +1,8 @@
 const distribution = require('../config')
 const id = distribution.util.id;
 
-const {mapper, reducer} = require('../distribution/engine/crawler-mapreduce/crawler-functions');
-const {indexReducer, indexMapper} = require('../distribution/components/indexer')
+const {mapper, reducer} = require('./engine/crawler-functions');
+const {indexReducer, indexMapper} = require('./engine/indexer')
 
 const crawlGroupGroup = {};
 
@@ -15,11 +15,11 @@ const workerNode3 = {ip: '127.0.0.1', port: 7002}
 const workerNode4 = {ip: '127.0.0.1', port: 7003}
 
 
-function run (){
+function start (){
     const urls = [
         'https://law.justia.com/codes/alabama/2024/',
       ]
-    
+
       distribution.local.groups.get('workers', (e, group) => {
         const nodeToUrls = {}
         for(const url of urls) {
@@ -40,23 +40,8 @@ function run (){
           distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], remote, (e, v) => {
             iter += 1
             if(iter == Object.keys(nodeToUrls).length){ 
-              distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
-                distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: indexReducer}, (e, v) => {
-                  const remote = {service: 'status', method: 'stop'};
-                  remote.node = workerNode2;
-                  distribution.local.comm.send([], remote, (e, v) => {
-                    remote.node = workerNode1;
-                    distribution.local.comm.send([], remote, (e, v) => {
-                      remote.node = workerNode3;
-                      distribution.local.comm.send([], remote, (e, v) => {
-                        remote.node = workerNode4;
-                        distribution.local.comm.send([], remote, (e, v) => {
-                          localServer.close();
-                        })
-                      })
-                    })
-                  })
-                })
+              run((e, v) => {
+                console.log("done")
               })
             }
           })
@@ -64,7 +49,46 @@ function run (){
       })
 }
 
+let iterations = 0;
 
+function run (cb) {
+  distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+    distribution.workers.mem.get(null, (e, v) => {
+      let count = 0;
+      for(const [key, value] of Object.entries(v)) {
+        count += value.length;
+      }
+
+      const serializedReducer = global.distribution.util.serialize(indexReducer);
+
+      const updatedSerializedReducer = serializedReducer.replace('numDocs = 0;', `numDocs = ${count};`);
+
+      let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
+      distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
+        if(iterations < 1) {
+          iterations += 1
+          run(cb)
+        }else {
+          const remote = {service: 'status', method: 'stop'};
+          remote.node = workerNode2;
+          distribution.local.comm.send([], remote, (e, v) => {
+            remote.node = workerNode1;
+            distribution.local.comm.send([], remote, (e, v) => {
+              remote.node = workerNode3;
+              distribution.local.comm.send([], remote, (e, v) => {
+                remote.node = workerNode4;
+                distribution.local.comm.send([], remote, (e, v) => {
+                  localServer.close();
+                  cb(null, null)
+                })
+              })
+            })
+          })
+        }
+      })
+    })
+  })
+}
 
 crawlGroupGroup[id.getID(workerNode1)] = workerNode1
 crawlGroupGroup[id.getID(workerNode2)] = workerNode2
@@ -90,7 +114,7 @@ startNodes(() => {
     const crawlGroupConfig = {gid: 'workers'};
     distribution.local.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
       distribution.workers.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
-        run();
+        start();
         });
       });
     });

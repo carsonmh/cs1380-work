@@ -34,7 +34,7 @@ const mapper = (key, value) => {
         let toProcess = [];
         for(const url of value) {
             distribution.local.mem.get(url, (e, v) => {
-                distribution.local.mem.put('', {key: url, group: 'workers'}, (e, n) => {
+                distribution.local.mem.put('', {key: url, gid: 'workers'}, (e, n) => {
                     counter += 1
                     if(!v) {
                         toProcess.push(url)
@@ -55,7 +55,9 @@ const mapper = (key, value) => {
                                     distribution.local.store.put([{ [url]: html }], { gid: 'workers', key: id.getID(url) }, (e, v) => {
                                         if (e) return res(e);
                 
-                                        const baseURL = url.includes('index.html') ? url.substring(0, url.lastIndexOf("index.html")) + '/' : url;
+                                        const newURL = new URL(url);
+                                        const baseURL = `${newURL.protocol}//${newURL.hostname}`;
+                                        // const baseURL = url.includes('index.html') ? url.substring(0, url.lastIndexOf("index.html")) + '/' : url;
                                         getURLs(baseURL, html, (e, v) => {
                                             if (e) return rej(e);
                                             for (const u of v) newURLs.add({[u]: u});

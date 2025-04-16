@@ -241,7 +241,6 @@ function mr(config) {
       }
 
       function startReduce(obj, cb) {
-        // console.log("I AM IN START REDUCE");
         distribution.local.store.get({key: null, gid: obj.gid}, (e, keys) => {
           let map = {}
           let i = 0
@@ -296,6 +295,7 @@ function mr(config) {
                         obj.node = distribution.node.config
                         distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
                           cb(null, null) // TEMP
+                          return
                         })
                       })
                     })

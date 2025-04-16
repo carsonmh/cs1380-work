@@ -12,8 +12,8 @@ function mem(config) {
       if(configuration == null) {
         distribution[context.gid].comm.send([{gid: context.gid, key: null}], {service: 'mem', method: 'get'}, (e, v) => {
           callback(e, v)
-          return
         })
+        return
       }
 
       const kid = typeof configuration == 'string' && configuration.length == 64 ? configuration : id.getID(configuration)
