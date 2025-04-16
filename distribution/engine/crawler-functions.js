@@ -1,4 +1,5 @@
 const mapper = (key, value) => {
+    console.log("doing mapper")
     function getURLs(baseURL, html, cb) {
         try {
             const regex = /href=["'](\/[^"']*)["']/g;
