@@ -106,7 +106,6 @@ let iterations = 0;
 
 function run(cb) {
   distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
-    console.log(e, v)
     distribution.workers.mem.get(null, (e, v) => {
       let count = 0;
       for(const [key, value] of Object.entries(v)) {
@@ -118,7 +117,6 @@ function run(cb) {
       let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
       
       distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
-        console.log(e, v)
         if(iterations < 1) {
           iterations += 1
           run(cb)
@@ -157,6 +155,9 @@ function run(cb) {
 //     cb();
 //   });
 // };
+
+global.nodeConfig = args.ip;
+global.nodeConfig = args.port;
 
 distribution.node.start((server) => {
   localServer = server;

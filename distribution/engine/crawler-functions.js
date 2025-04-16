@@ -1,5 +1,4 @@
 const mapper = (key, value) => {
-    console.log("doing mapper")
     function getURLs(baseURL, html, cb) {
         try {
             const regex = /href=["'](\/[^"']*)["']/g;
@@ -54,7 +53,6 @@ const mapper = (key, value) => {
                             .then(html => {
                                 return new Promise((res, rej) => {
                                     distribution.local.store.put([{ [url]: html }], { gid: 'workers', key: id.getID(url) }, (e, v) => {
-                                        console.log(e, v)
                                         if (e) return res(e);
                 
                                         const newURL = new URL(url);
@@ -88,7 +86,6 @@ const mapper = (key, value) => {
     })
 }
 const reducer = (key, values) => {
-    console.log("doing reducer")
     return values[0]
 }
 
