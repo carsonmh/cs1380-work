@@ -44,7 +44,6 @@ function mr(config) {
   function exec(configuration, cb) {
     let count = 0
     function notify(obj, cb) {
-      console.log('notify called', distribution.node, obj)
       function operatorSync(obj, cb) {
         const operatorNode = obj.node
         obj.operation = 'worker_sync'
@@ -55,7 +54,7 @@ function mr(config) {
       }
 
       function workerSync(obj, cb) {
-        const memberAmount = obj.memberCount // TODO: don't hardcode this value
+        const memberAmount = obj.memberCount
         count += 1
         console.log(count, memberAmount)
         if(count == memberAmount){ 
