@@ -32,10 +32,9 @@ const mapper = (key, value) => {
         let total = value.length
         let counter = 0;
         let toProcess = [];
-
         for(const url of value) {
             distribution.local.mem.get(url, (e, v) => {
-                distribution.local.mem.put(url, '', (e, n) => {
+                distribution.local.mem.put('', {key: url, group: 'workers'}, (e, n) => {
                     counter += 1
                     if(!v) {
                         toProcess.push(url)

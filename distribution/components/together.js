@@ -85,6 +85,7 @@ function isSHA256(filename) {
 
 // calculates number of documents
 function calculate_document_number() {
+    console.log("calculating")
     distribution.workers.mem.get(null, (e, v) => {
         if(v == null) {
             do_tf_idf(0)
@@ -125,13 +126,33 @@ function do_tf_idf(count){
 
 const workerConfig = {  gid: 'workers' };
 
+let count = 0;
+
 function compose_crawl_index() {
-    distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
-        // console.log("returned with error and then value");
-        // console.log(e);
-        // console.log(v);
-        calculate_document_number();
-    })
+    count += 1
+    if(count < 2) {
+        console.log("iteration", count)
+        distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+            console.log("done crawling")
+            // console.log("returned with error and then value");
+            // console.log(e);
+            // console.log(v);
+            calculate_document_number();
+        })
+    }else {
+        const remote = {service: 'status', method: 'stop'};
+        remote.node = n1;
+        distribution.local.comm.send([], remote, (e, v) => {
+        remote.node =  n2;
+        distribution.local.comm.send([], remote, (e, v) => {
+            remote.node = n3;
+            distribution.local.comm.send([], remote, (e, v) => {
+                localServer.close();
+                done();
+            })
+        })
+        })
+    }
 }
 
 function run() {

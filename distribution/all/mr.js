@@ -120,7 +120,36 @@ function mr(config) {
           return
         }
 
+        if(obj.keys.length == 1 && obj.keys[0] == 'indexer') {
+          
+          distribution.local.store.get({gid: obj.gid, key: null}, (e, keys) => {
+            function isSHA256(filename) {
+              const sha256Regex = /^[a-f0-9]{64}$/i;
+              return sha256Regex.test(filename);
+            }
+
+            obj.keys = keys.filter(key => isSHA256(key))
+            total = obj.keys.length;
+            go(cb)
+          })
+        }else {
+          go(cb)
+        }
+
         function go(cb) {
+          if (obj.keys.length == 0) {
+            const arr = [];
+            distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
+              const operatorNode = obj.node
+              obj.operation = 'map_sync'
+              obj.node = distribution.node.config
+              distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                cb(null, null)
+                return
+              })
+            })
+          }
+
           for (const key of obj.keys) {
             distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
               distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
@@ -150,43 +179,12 @@ function mr(config) {
             })
           }
           // if there is no data -> could be the case in the indexer after we have no urls left (?)
-          if (obj.keys.length == 0) {
-            const arr = [];
-            distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
-              const operatorNode = obj.node
-              obj.operation = 'map_sync'
-              obj.node = distribution.node.config
-              distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
-                cb(null, null)
-              })
-            })
-          }
-          return;
-        }
-
-        if(obj.keys.length == 1 && obj.keys[0] == 'indexer') {
-          
-          distribution.local.store.get({gid: obj.gid, key: null}, (e, keys) => { // not local make it group
-            function isSHA256(filename) {
-              const sha256Regex = /^[a-f0-9]{64}$/i;
-              return sha256Regex.test(filename);
-            }
-
-            obj.keys = keys.filter(key => isSHA256(key))
-            total = obj.keys.length;
-            go(cb)
-          })
-        }else {
-          go(cb)
         }
       }
 
       function mapSync(obj, cb) {
         const memberAmount = obj.memberCount
         count += 1
-        // console.log("here is map sync");
-        // console.log(memberAmount);
-        // console.log(count);
         if(count == memberAmount){ 
           count = 0
           distribution[obj.gid].comm.send(
@@ -404,8 +402,6 @@ function mr(config) {
     const mapService = { map: configuration.map }
     const reduceService = { reduce: configuration.reduce }
     const shuffleService = { shuffle: shuffle }
-
-    // console.log("in map reduce");
 
     distribution.local.routes.put(notifyService, notifyServiceName, (e, v) => {
       distribution[context.gid].routes.put(notifyService, notifyServiceName, (e, v) => {

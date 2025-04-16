@@ -4,6 +4,7 @@ const id = distribution.util.id;
 
 
 const {mapper, reducer} = require('../distribution/engine/crawler-mapreduce/crawler-functions');
+const {indexReducer, indexMapper} = require('../distribution/components/indexer')
 
 const crawlGroupGroup = {};
 
@@ -15,11 +16,12 @@ const workerNode2 = {ip: '127.0.0.1', port: 7001}
 const workerNode3 = {ip: '127.0.0.1', port: 7002}
 const workerNode4 = {ip: '127.0.0.1', port: 7003}
 
-jest.setTimeout(20000)
+jest.setTimeout(5000)
 // const indexerNode1 = {ip: '127.0.0.1', port: 9003, onStart: () => {}}
 // const indexerNode2 = {ip: '127.0.0.1', port: 9004, onStart: () => {}}
 // const indexerNode3 = {ip: '127.0.0.1', port: 9005, onStart: () => {}}
 
+/*
 test('crawler mapreduce', (done) => {
   const urls = [
     'https://law.justia.com/codes/alabama/2024/',
@@ -48,6 +50,55 @@ test('crawler mapreduce', (done) => {
           distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
             distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
               distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+                done()
+              })
+            })
+          })
+        }
+      })
+    }
+  })
+})
+*/
+
+test('indexer mapreduce', (done) => {
+  const urls = [
+    'https://law.justia.com/codes/alabama/2024/',
+  ]
+
+  distribution.local.groups.get('workers', (e, group) => {
+    const nodeToUrls = {}
+    for(const url of urls) {
+      const urlId = id.getID(url)
+      const nodeKey = id.consistentHash(urlId, Object.keys(group))
+      const node = group[nodeKey]
+      if(nodeToUrls[nodeKey]) {
+        nodeToUrls[nodeKey].push(url)
+      }else {
+        nodeToUrls[nodeKey] = [url]
+      }
+    }
+
+    let iter = 0;
+
+    for(const [key, value] of Object.entries(nodeToUrls)) {
+      const remote = {node: group[key], service: 'store', method: 'put'}
+      distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], remote, (e, v) => {
+        iter += 1
+        if(iter == Object.keys(nodeToUrls).length){ 
+          distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+            distribution.workers.mem.get(null, (e, v) => {
+              let count = 0
+              for(const key of Object.keys(v)){
+                  count += v[key].length
+              }
+
+              const serializedReducer = global.distribution.util.serialize(indexReducer);
+
+              const updatedSerializedReducer = serializedReducer.replace('num_docs = 0;', `num_docs = ${count};`);
+
+              let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
+              distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
                 done()
               })
             })
