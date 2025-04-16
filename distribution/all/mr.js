@@ -57,6 +57,7 @@ function mr(config) {
       function workerSync(obj, cb) {
         const memberAmount = obj.memberCount // TODO: don't hardcode this value
         count += 1
+        console.log(count, memberAmount)
         if(count == memberAmount){ 
           count = 0
           distribution.local.groups.get(obj.gid, (e, group) => {
