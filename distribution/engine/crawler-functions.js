@@ -88,6 +88,7 @@ const mapper = (key, value) => {
     })
 }
 const reducer = (key, values) => {
+    console.log("doing reducer")
     return values[0]
 }
 
