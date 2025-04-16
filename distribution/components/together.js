@@ -85,29 +85,26 @@ function isSHA256(filename) {
 
 // calculates number of documents
 function calculate_document_number() {
-    distribution.workers.store.get(null, (e, v) => {
-        // console.log("HERE IS THE STORE.GET ERROR AND VALUE");
-        // console.log(e);
-        // console.log(v);
-        let realkeys =[];
-            v.forEach(key_name => {
-                if (isSHA256(key_name)) {
-                    realkeys.push(key_name);
-                }
-            });
-        // console.log("real keys");
-        // console.log("value of store.get");
-        // console.log(v);
-        // console.log(realkeys);
-        do_tf_idf(realkeys);
+    distribution.workers.mem.get(null, (e, v) => {
+        if(v == null) {
+            do_tf_idf(0)
+            console.log('docs', e, v)
+        }else {
+            let count = 0
+            for(const key of Object.keys(v)){
+                count += v[key].length
+            }
+            do_tf_idf(count);
+        }
+
     });
 }
 
-function do_tf_idf(keys){
+function do_tf_idf(count){
 
     const serializedReducer = global.distribution.util.serialize(indexReducer);
 
-    const updatedSerializedReducer = serializedReducer.replace('num_docs = 0;', `num_docs = ${keys.length};`);
+    const updatedSerializedReducer = serializedReducer.replace('num_docs = 0;', `num_docs = ${count};`);
 
     let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
 

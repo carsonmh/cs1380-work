@@ -7,7 +7,6 @@ function crawl(url, cb) {
     distribution.local.mem.get(id.getID(url), (e, v) => {
         if(!v) {
             distribution.local.mem.put(id.getID(url), null, (e, v) => {
-                console.log(url)
                 fetch(url, {
                     method: "GET", 
                     redirect: "follow"

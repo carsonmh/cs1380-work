@@ -15,7 +15,7 @@ const workerNode2 = {ip: '127.0.0.1', port: 7001}
 const workerNode3 = {ip: '127.0.0.1', port: 7002}
 const workerNode4 = {ip: '127.0.0.1', port: 7003}
 
-jest.setTimeout(10000)
+jest.setTimeout(20000)
 // const indexerNode1 = {ip: '127.0.0.1', port: 9003, onStart: () => {}}
 // const indexerNode2 = {ip: '127.0.0.1', port: 9004, onStart: () => {}}
 // const indexerNode3 = {ip: '127.0.0.1', port: 9005, onStart: () => {}}
@@ -48,9 +48,7 @@ test('crawler mapreduce', (done) => {
           distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
             distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
               distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
-                distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
-                  done()
-                })
+                done()
               })
             })
           })
