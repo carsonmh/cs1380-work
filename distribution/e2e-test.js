@@ -1,6 +1,7 @@
 const readline = require('readline');
 const distribution = require('../config');
 const id = distribution.util.id;
+const args = require('yargs').argv;
 
 const {mapper, reducer} = require('./engine/crawler-functions');
 const {indexReducer, indexMapper} = require('./engine/indexer')
