@@ -43,6 +43,11 @@ const mapper = (key, value) => {
                         const id = require("../util/id")
                         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
                         let newURLs = new Set();
+                        if(toProcess.length > 500) {
+                            console.log("greater")
+                            newURLs = new Set([...toProcess.slice(500)])
+                            toProcess = toProcess.slice(0, 500);
+                        }
                         let tasks;
                         tasks = toProcess.map(async url => {
                             return fetch(url, {

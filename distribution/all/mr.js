@@ -66,7 +66,7 @@ function mr(config) {
 
             const keys = configuration.keys
             let nodeToKeys = {}
-            if (keys.length == 1 && (keys[0] == 'urls' || keys[0] == 'indexer')) {
+            if (keys.length == 1 && (keys[0] == 'urls-file-1234' || keys[0] == 'indexer')) {
               for(const key of Object.keys(group)) { 
                 nodeToKeys[key] = [keys[0]]
               }
@@ -246,7 +246,7 @@ function mr(config) {
           let i = 0
           if(keys.length == 0) {
             const res = []
-            distribution.local.store.put(res, { key: 'result', gid: obj.gid }, (e, v) => {
+            distribution.local.store.put(res, { key: 'result-file-1234', gid: obj.gid }, (e, v) => {
               const operatorNode = obj.node
               obj.operation = 'reduce_sync'
               obj.node = distribution.node.config
@@ -283,10 +283,10 @@ function mr(config) {
 
                       let key;
                       
-                      if(obj.keys.length == 1 && obj.keys[0] == 'urls') {
-                        key = 'urls'
+                      if(obj.keys.length == 1 && obj.keys[0] == 'urls-file-1234') {
+                        key = 'urls-file-1234'
                       } else {
-                        key = 'result'
+                        key = 'result-file-1234'
                       }
 
                       distribution.local.store.put(res, { key: key, gid: obj.gid }, (e, v) => {
@@ -418,10 +418,10 @@ function mr(config) {
                   for(const key of Object.keys(group)) {
                     const node = group[key]
                     const remote = {node: node, service: 'store', method: 'get'}
-                    const params = [{gid: context.gid, key: 'result'}]
+                    const params = [{gid: context.gid, key: 'result-file-1234'}]
                     distribution.local.comm.send(params, remote, (e, v) => {
                       const remote2 = {node: node, service: 'store', method: 'del'}
-                      const params2 = [{gid: context.gid, key: 'result'}]
+                      const params2 = [{gid: context.gid, key: 'result-file-1234'}]
                       // distribution.local.comm.send(params2, remote2, (e, v) => {
                         iterator += 1
                         arr = arr.concat(v)

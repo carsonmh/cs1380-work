@@ -87,10 +87,10 @@ async function start() {
         for(const [key, value] of Object.entries(nodeToUrls)) {
           const getRemote = {node: group[key], service: 'store', method: 'get'}
 
-          distribution.local.comm.send([{key: 'urls', gid: 'workers'}], getRemote, (e, v) => {
+          distribution.local.comm.send([{key: 'urls-file-1234', gid: 'workers'}], getRemote, (e, v) => {
             const putRemote = {node: group[key], service: 'store', method: 'put'}
             if(!v) {
-              distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], putRemote, (e, v) => {
+              distribution.local.comm.send([value, {key: 'urls-file-1234', gid: 'workers'}], putRemote, (e, v) => {
                 incrementAndStart()
               })
             }else {
@@ -103,10 +103,12 @@ async function start() {
   });
 }
 
-let iterations = args.iterations ? args.iterations : 1;
+let iterations = 0;
+let numIterations = args.iterations ? args.iterations : 1;
 
 function run(cb) {
-  distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+  console.log('running iteration', iterations, '\n\n')
+  distribution.workers.mr.exec({keys: ['urls-file-1234'], map: mapper, reduce: reducer}, (e, v) => {
     distribution.workers.mem.get(null, (e, v) => {
       let count = 0;
       for(const [key, value] of Object.entries(v)) {
@@ -118,9 +120,8 @@ function run(cb) {
       let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
       
       distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
-        if(iterations < 1) {
+        if(iterations < numIterations) {
           iterations += 1
-          console.log("running iteration", iterations-1)
           run(cb)
         } else {
           console.log("stopping for now...")

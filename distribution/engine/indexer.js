@@ -60,6 +60,9 @@ let indexReducer = (key, values) => {
   
       if(v) {
         for(const value of v) {
+          if(value == undefined){ 
+            console.log(v, key, value)
+          }
           const tf = value[2];
           if(!res[key]) {
             res[key] = {}
