@@ -73,15 +73,28 @@ async function start() {
         }
     
         let iter = 0;
+
+        function incrementAndStart() {
+          iter += 1
+          if(iter == Object.keys(nodeToUrls).length){ 
+            run((e, v) => {
+              console.log("done")
+            })
+          }
+        }
     
         for(const [key, value] of Object.entries(nodeToUrls)) {
-          const remote = {node: group[key], service: 'store', method: 'put'}
-          distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], remote, (e, v) => {
-            iter += 1
-            if(iter == Object.keys(nodeToUrls).length){ 
-              run((e, v) => {
-                console.log("done")
+          const getRemote = {node: group[key], service: 'store', method: 'get'}
+
+          distribution.local.comm.send([{key: 'urls', gid: 'workers'}], getRemote, (e, v) => {
+            const putRemote = {node: group[key], service: 'store', method: 'put'}
+            if(!v) {
+              distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], putRemote, (e, v) => {
+                console.log(e, v)
+                incrementAndStart()
               })
+            }else {
+              incrementAndStart()
             }
           })
         }
