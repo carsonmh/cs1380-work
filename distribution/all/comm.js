@@ -39,6 +39,8 @@ function comm(config) {
           continue
         }
 
+        console.log(value)
+
         const remote = { node: value, service: configuration.service, method: configuration.method }
         distribution.local.comm.send(message, remote, (e, v) => {
           if(e) {

@@ -54,9 +54,7 @@ async function start() {
 
   const crawlGroupConfig = {gid: 'workers'};
   distribution.local.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
-    console.log("done")
     distribution.workers.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
-      console.log("done2", e, v)
       const urls = [
         'https://law.justia.com/codes/alabama/2024/',
       ];
