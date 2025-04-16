@@ -53,6 +53,7 @@ const mapper = (key, value) => {
                             .then(html => {
                                 return new Promise((res, rej) => {
                                     distribution.local.store.put([{ [url]: html }], { gid: 'workers', key: id.getID(url) }, (e, v) => {
+                                        console.log(e, v)
                                         if (e) return res(e);
                 
                                         const newURL = new URL(url);
