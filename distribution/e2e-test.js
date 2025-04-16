@@ -90,7 +90,6 @@ async function start() {
             const putRemote = {node: group[key], service: 'store', method: 'put'}
             if(!v) {
               distribution.local.comm.send([value, {key: 'urls', gid: 'workers'}], putRemote, (e, v) => {
-                console.log(e, v)
                 incrementAndStart()
               })
             }else {
@@ -107,6 +106,7 @@ let iterations = 0;
 
 function run(cb) {
   distribution.workers.mr.exec({keys: ['urls'], map: mapper, reduce: reducer}, (e, v) => {
+    console.log(e, v)
     distribution.workers.mem.get(null, (e, v) => {
       let count = 0;
       for(const [key, value] of Object.entries(v)) {
@@ -118,6 +118,7 @@ function run(cb) {
       let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
       
       distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
+        console.log(e, v)
         if(iterations < 1) {
           iterations += 1
           run(cb)
