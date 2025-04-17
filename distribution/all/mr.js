@@ -106,7 +106,7 @@ function mr(config) {
       }
 
       function startMap(obj, cb) {
-        let arr = []
+        // let arr = []
         let counter = 0
         let total = obj.keys.length
         if(obj.keys.length == 0){ 
@@ -140,7 +140,7 @@ function mr(config) {
         function go(cb) {
           if (obj.keys.length == 0) {
             const arr = [];
-            distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
+            distribution.local.store.put(arr, { key: 'mappedValues'+obj.gid, gid: obj.gid }, (e, v) => {
               const operatorNode = obj.node
               obj.operation = 'map_sync'
               obj.node = distribution.node.config
@@ -158,16 +158,9 @@ function mr(config) {
               distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
                 distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
                   returnedService.map(key, data).then(result => {
-                    if(Array.isArray(result)) {
-                      arr = arr.concat(result)
-                    }else {
-                      arr.push(result)
-                    }
-
-                    counter += 1
-      
-                    if (counter == total) {
-                      distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
+                    distribution.local.store.put(result, { key: 'mappedValues' + key, gid: obj.gid }, (e, v) => {
+                      counter += 1
+                      if(counter == total) {
                         arr = null
                         const operatorNode = obj.node
                         obj.operation = 'map_sync'
@@ -175,8 +168,8 @@ function mr(config) {
                         distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
                           cb(null, null)
                         })
-                      })
-                    }
+                      }
+                    })
                   })
                 })
               })
@@ -220,9 +213,6 @@ function mr(config) {
       function reduceSync(obj, cb) {
         const memberAmount = obj.memberCount
         count += 1
-        // console.log("I AM IN REDUCE SYNC");
-        // console.log(count);
-        // console.log(memberAmount);
         if(count == memberAmount){ 
           count = 0
           cb(null, null)
@@ -349,47 +339,67 @@ function mr(config) {
 
     function shuffle(obj, cb) {
       const id = require('../util/id')
+      console.log("memory usage before: ", Math.round(process.memoryUsage().heapUsed / 1024 / 1024))
       distribution.local.groups.get(obj.gid, (e, group) => {
-        distribution.local.store.get({gid: obj.gid, key: 'mappedValues'}, (e, mappedValues) => {
-          if(e) {
-            cb(e, null)
-          }
-
-          distribution.local.store.del({gid: obj.gid, key: 'mappedValues'}, (e, res) => {
-            res = null
-            if(mappedValues.length == 0) {
-              cb(null, null)
-              return
-            }
-
-            let nodeToUrls = {}
-            for(const i in mappedValues){ 
-              const mapping = mappedValues[i]
-              const nodeKey = id.consistentHash(id.getID(Object.keys(mapping)[0]), Object.keys(group))
-              if(nodeToUrls[nodeKey]) {
-                nodeToUrls[nodeKey].push(mapping)
-              }else {
-                nodeToUrls[nodeKey] = [mapping]
-              }
-              mappedValues[i] = null
-            }
-
-            let i = 0
-
-            for(const nodeKey of Object.keys(nodeToUrls)){ 
-              const node = group[nodeKey]
-              const remote = {node: node, service: "store", method: "put"}
-              const arr = nodeToUrls[nodeKey]
-              distribution.local.comm.send([arr, {key: 'shuffleValue ' + distribution.node.config.port, gid: obj.gid}], remote, (e, v) => {
-                i += 1
-                if(i == Object.keys(nodeToUrls).length) {
-                  nodeToUrls = null
-                  cb(null, null)
+        distribution.local.store.get({gid: obj.gid, key: null}, (e, keys) => {
+          let iter = 0;
+          let newKeys = keys.filter((key) => key.includes('mappedValues'))
+          for(const key of newKeys) {
+              distribution.local.store.get({gid: obj.gid, key: key}, (e, mappedValues) => {
+                if(e) {
+                  cb(e, null)
+                  return
                 }
-              })
-              }
-            })
-          })
+      
+                distribution.local.store.del({gid: obj.gid, key: key}, (e, res) => {
+                  res = null
+
+                  function doProcessing(mappedValues, cb) {
+                    if(!mappedValues || mappedValues.length == 0) {
+                      cb(null, null)
+                      return
+                    }
+                    
+                    let nodeToUrls = {}
+                    for(const i in mappedValues){ 
+                      const mapping = mappedValues[i]
+                      const nodeKey = id.consistentHash(id.getID(Object.keys(mapping)[0]), Object.keys(group))
+                      if(nodeToUrls[nodeKey]) {
+                        nodeToUrls[nodeKey].push(mapping)
+                      }else {
+                        nodeToUrls[nodeKey] = [mapping]
+                      }
+                      mappedValues[i] = null
+                    }
+        
+                    let i = 0
+        
+                    for(const nodeKey of Object.keys(nodeToUrls)){ 
+                      const node = group[nodeKey]
+                      const remote = {node: node, service: "store", method: "put"}
+                      const arr = nodeToUrls[nodeKey]
+                      distribution.local.comm.send([arr, {key: 'shuffleValue ' + distribution.node.config.port + ' ' + key, gid: obj.gid}], remote, (e, v) => {
+                        i += 1
+                        if(i == Object.keys(nodeToUrls).length) {
+                          nodeToUrls = null
+                          cb(null, null)
+                          return
+                        }
+                      })
+                      }
+                  }
+
+                  doProcessing(mappedValues, (e, v) => {
+                    iter += 1
+                    if(iter == newKeys.length) {
+                      console.log("memory usage after: ", Math.round(process.memoryUsage().heapUsed / 1024 / 1024))
+                      cb(null, null)
+                    }
+                  })
+                  })
+                })
+          }
+        })
         })
     }
 

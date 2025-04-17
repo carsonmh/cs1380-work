@@ -57,7 +57,9 @@ async function start() {
   distribution.local.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
     distribution.workers.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
       const urls = [
-        'https://law.justia.com/codes/alabama/2024/','https://law.justia.com/codes/california/2024/', 'https://law.justia.com/codes/new-york/2024/',
+        'https://law.justia.com/codes/alabama/2024/',
+        'https://law.justia.com/codes/california/2024/',
+        'https://law.justia.com/codes/new-york/2024/',
       ];
     
       distribution.local.groups.get('workers', (e, group) => {
@@ -109,6 +111,9 @@ let numIterations = args.iterations ? args.iterations : 1;
 function run(cb) {
   console.log('running iteration', iterations, '\n\n')
   distribution.workers.mr.exec({keys: ['urls-file-1234'], map: mapper, reduce: reducer}, (e, v) => {
+    if(e) {
+      console.log(e)
+    }
     distribution.workers.store.get(null, (e, v) => {
       let count = 0;
       for(const [key, value] of Object.entries(v)) {
@@ -120,6 +125,9 @@ function run(cb) {
       let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
       
       distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
+        if(e) {
+          console.log(e, v)
+        }
         if(iterations < numIterations) {
           iterations += 1
           run(cb)
