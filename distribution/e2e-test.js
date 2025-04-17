@@ -125,14 +125,6 @@ function run(cb) {
         count += value.length;
       }
 
-      console.log('crawled: ', count)
-
-      if(count >= 1000) {
-        cb(null, null)
-        const endTime = performance.now();
-        console.log("done. Time taken: ", endTime - startTime)
-        return
-      }
 
       const serializedReducer = global.distribution.util.serialize(indexReducer);
       const updatedSerializedReducer = serializedReducer.replace('numDocs = 0;', `numDocs = ${count};`);
@@ -143,7 +135,14 @@ function run(cb) {
           console.log(e, v)
         }
         if(iterations < numIterations) {
+          if(count >= 1000) {
+            cb(null, null)
+            const endTime = performance.now();
+            console.log("done. Time taken: ", endTime - startTime)
+            return
+          }
           iterations += 1
+          console.log('crawled: ', count)
           run(cb)
         } else {
           console.log("stopping for now...")
