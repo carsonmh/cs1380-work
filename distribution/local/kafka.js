@@ -31,7 +31,6 @@ function produce(config, message, cb) {
                             cb(null, null)
                         }
                     })
-                    console.log(topics)
                 }else {
                     console.log("url found")
                     i += 1
@@ -56,8 +55,7 @@ function consume(config, cb) {
         // distribution.local.mem.get(null, (err, storedURLs) => {
             // let allURLs = storedURLs || [];
             // const node = id.rendezvousHash(hash, Object.keys(group));
-
-            console.log(topics['url'])
+            console.log(group, config.node)
             const node = config.node;
             let allURLs = [];
             if(!topics['url'][node]) {
