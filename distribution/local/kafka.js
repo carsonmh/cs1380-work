@@ -12,6 +12,10 @@ function produce(config, message, cb) {
 
     distribution.local.groups.get('workers', (err, group) => {
         let i = 0;
+        if(message.length == 0) {
+            cb(null, null);
+            return
+        }
         for (const url of message) {
             distribution.local.mem.get(url, (e, v) => {
                 if(!v) {
@@ -35,7 +39,6 @@ function produce(config, message, cb) {
                 }
             })
         }
-        cb(null, null);
     });
 }
 

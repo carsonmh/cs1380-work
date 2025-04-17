@@ -1,5 +1,5 @@
 const doCrawl = require('../engine/kafka/doCrawl')
-const kafkaNode = {ip: '127.0.0.1', port: 9001} // Fill in with the kafkaNode info
+const kafkaNode = {ip: '172.31.30.7', port: 9001} // Fill in with the kafkaNode info
 const id = require("../util/id")
 
 const https = require('https');

@@ -1,8 +1,6 @@
 const getURLs = require("./getURLs")
 const id = require('../../util/id')
 
-const kafkaNode = {ip: '127.0.0.1', port: 9001}
-
 function doCrawl(url, cb) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" // TODO: make this more secure
     fetch(url, {
