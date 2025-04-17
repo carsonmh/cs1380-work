@@ -6,7 +6,7 @@ let localServer = null;
 
 const tfidfGroup = {};
 
-const n1 = { ip: '127.0.0.1', port: 8000 };
+const n1 = { ip: '172.31.28.223', port: 8000 };
 // const n2 = { ip: '127.0.0.1', port: 7111 };
 // const n3 = { ip: '127.0.0.1', port: 7112 };
 
