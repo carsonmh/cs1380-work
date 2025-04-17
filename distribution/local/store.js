@@ -27,7 +27,7 @@ function getKeyAndGid(configuration) {
 }
 
 function put(state, configuration, callback) {
-  const content = serialize(state)
+  let content = serialize(state)
   let [key, gid] = getKeyAndGid(configuration)
   if(!key) {
     key = id.getID(state)
@@ -51,6 +51,7 @@ function put(state, configuration, callback) {
           if (err) {
             callback(new Error(err), null)
           } else {
+            content = null
             callback(null, state)
           }
         });

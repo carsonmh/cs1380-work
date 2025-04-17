@@ -94,6 +94,7 @@ function mr(config) {
                 [object], remote, (e, v) => {
                   counter += 1
                   if (counter == total) {
+                    nodeToKeys = null
                     cb(null, null)
                   }
                 })
@@ -148,6 +149,8 @@ function mr(config) {
                 return
               })
             })
+
+            return
           }
 
           for (const key of obj.keys) {
@@ -165,6 +168,7 @@ function mr(config) {
       
                     if (counter == total) {
                       distribution.local.store.put(arr, { key: 'mappedValues', gid: obj.gid }, (e, v) => {
+                        arr = null
                         const operatorNode = obj.node
                         obj.operation = 'map_sync'
                         obj.node = distribution.node.config
@@ -290,6 +294,7 @@ function mr(config) {
                       }
 
                       distribution.local.store.put(res, { key: key, gid: obj.gid }, (e, v) => {
+                        res = null
                         const operatorNode = obj.node
                         obj.operation = 'reduce_sync'
                         obj.node = distribution.node.config
@@ -343,6 +348,7 @@ function mr(config) {
     }
 
     function shuffle(obj, cb) {
+      console.log(`Memory before processing: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
       const id = require('../util/id')
       distribution.local.groups.get(obj.gid, (e, group) => {
         distribution.local.store.get({gid: obj.gid, key: 'mappedValues'}, (e, mappedValues) => {
@@ -351,19 +357,22 @@ function mr(config) {
           }
 
           distribution.local.store.del({gid: obj.gid, key: 'mappedValues'}, (e, res) => {
+            res = null
             if(mappedValues.length == 0) {
               cb(null, null)
               return
             }
 
             let nodeToUrls = {}
-            for(const mapping of mappedValues){ 
+            for(const i in mappedValues){ 
+              const mapping = mappedValues[i]
               const nodeKey = id.consistentHash(id.getID(Object.keys(mapping)[0]), Object.keys(group))
               if(nodeToUrls[nodeKey]) {
                 nodeToUrls[nodeKey].push(mapping)
               }else {
                 nodeToUrls[nodeKey] = [mapping]
               }
+              mappedValues[i] = null
             }
 
             let i = 0
@@ -375,6 +384,8 @@ function mr(config) {
               distribution.local.comm.send([arr, {key: 'shuffleValue ' + distribution.node.config.port, gid: obj.gid}], remote, (e, v) => {
                 i += 1
                 if(i == Object.keys(nodeToUrls).length) {
+                  nodeToUrls = null
+                  console.log(`Memory after processing: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
                   cb(null, null)
                 }
               })

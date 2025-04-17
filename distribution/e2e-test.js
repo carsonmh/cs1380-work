@@ -109,7 +109,7 @@ let numIterations = args.iterations ? args.iterations : 1;
 function run(cb) {
   console.log('running iteration', iterations, '\n\n')
   distribution.workers.mr.exec({keys: ['urls-file-1234'], map: mapper, reduce: reducer}, (e, v) => {
-    distribution.workers.mem.get(null, (e, v) => {
+    distribution.workers.store.get(null, (e, v) => {
       let count = 0;
       for(const [key, value] of Object.entries(v)) {
         count += value.length;

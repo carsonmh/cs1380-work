@@ -8,9 +8,16 @@ const indexMapper = (key, value) => {
   const firstKey = Object.keys(mapping)[0];
   const dom = new JSDOM(mapping[firstKey]);
 
-  const textContent = dom.window.document.body.textContent;
-  const cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
-  const words = cleanText.split(' ').filter((e) => e.length > 0);
+  let textContent = dom.window.document.body.textContent;
+  let cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
+  function isNumberGt5Digits(str) {
+    if (/^-?\d+$/.test(str)) {
+        return str.replace(/^-/, '').length > 4;
+    }
+    return false;
+  }
+
+  let words = cleanText.split(' ').filter((e) => e.length > 0);
   
   let totalCount = words.length;
   words.forEach((word) => {
@@ -20,6 +27,15 @@ const indexMapper = (key, value) => {
       out[word] = {documentId: firstKey, wordCount: totalCount, itemCount: 1} // deleted document: value
     }
   })
+
+  for(const [key, value] of Object.entries(out)){ 
+    out[key] = {documentId: out[key].documentId, tf: out[key].itemCount / (out[key].wordCount * 1.0)}
+  }
+
+  words = null
+  cleanText = null
+  textContent = null
+
 
   let res = []
   for(const [key, value] of Object.entries(out)) {
@@ -44,11 +60,20 @@ let indexReducer = (key, values) => {
       const idf = Math.log10((numDocs + 1) / ((documentsWithWord *1.0) + 1)) // smoothed IDF
   
       let res = {}
+
+      if(v) {
+        for(const value of v) {
+          const tf = value[2];
+          if(!res[key]) {
+            res[key] = {}
+          }
+          res[key][value[0]] = [Math.round((tf * idf) * 10000) / 10000, tf];
+        }
+        v = null // garbage collection
+      }
   
       for(const value of values) {
-        const amountOfTimesItem = value.itemCount
-        const totalAmountOfItems = value.wordCount
-        const tf = amountOfTimesItem / (totalAmountOfItems * 1.0)
+        const tf = value.tf;
 
   
         if(!res[key]) {
@@ -57,19 +82,8 @@ let indexReducer = (key, values) => {
   
         res[key][value.documentId] = [Math.round((tf * idf) * 10000) / 10000, tf]
       }
-  
-      if(v) {
-        for(const value of v) {
-          if(value == undefined){ 
-            console.log(v, key, value)
-          }
-          const tf = value[2];
-          if(!res[key]) {
-            res[key] = {}
-          }
-          res[key][value[0]] = [Math.round((tf * idf) * 10000) / 10000, tf];
-        }
-      }
+
+      values = null // garbage collection
   
       let i = 0;
       for (const word in res) {
