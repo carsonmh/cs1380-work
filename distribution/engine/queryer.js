@@ -6,9 +6,9 @@ let localServer = null;
 
 const tfidfGroup = {};
 
-const n1 = { ip: '127.0.0.1', port: 7110 };
-const n2 = { ip: '127.0.0.1', port: 7111 };
-const n3 = { ip: '127.0.0.1', port: 7112 };
+const n1 = { ip: '127.0.0.1', port: 8000 };
+// const n2 = { ip: '127.0.0.1', port: 7111 };
+// const n3 = { ip: '127.0.0.1', port: 7112 };
 
 const tfidfConfig = { gid: 'workers' };
 
@@ -96,8 +96,8 @@ function run() {
         localServer = server;
 
         tfidfGroup[id.getSID(n1)] = n1;
-        tfidfGroup[id.getSID(n2)] = n2;
-        tfidfGroup[id.getSID(n3)] = n3;
+        // tfidfGroup[id.getSID(n2)] = n2;
+        // tfidfGroup[id.getSID(n3)] = n3;
 
         distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
             do_the_query();

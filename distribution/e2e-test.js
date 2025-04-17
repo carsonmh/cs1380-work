@@ -57,7 +57,7 @@ async function start() {
   distribution.local.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
     distribution.workers.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
       const urls = [
-        'https://law.justia.com/codes/alabama/2024/',
+        'https://law.justia.com/codes/alabama/2024/','https://law.justia.com/codes/california/2024/', 'https://law.justia.com/codes/new-york/2024/',
       ];
     
       distribution.local.groups.get('workers', (e, group) => {

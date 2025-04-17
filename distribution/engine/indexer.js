@@ -8,7 +8,15 @@ const indexMapper = (key, value) => {
   const firstKey = Object.keys(mapping)[0];
   const dom = new JSDOM(mapping[firstKey]);
 
-  let textContent = dom.window.document.body.textContent;
+  // let textContent = dom.window.document.body.textContent;
+  const codeContentDivs = dom.window.document.querySelector('div[id="codes-content"]');
+  if(!codeContentDivs || codeContentDivs == undefined) {
+    return new Promise((resolve, reject) => {
+      resolve([])
+    })
+  }
+
+  let textContent = codeContentDivs.textContent
   let cleanText = textContent.replace(/[^\w\s]|_/g, '').replace(/\s+/g, ' ').toLowerCase();
   function isNumberGt5Digits(str) {
     if (/^-?\d+$/.test(str)) {

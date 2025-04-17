@@ -1,24 +1,30 @@
 const mapper = (key, value) => {
+    const {JSDOM} = require("jsdom")
     function getURLs(baseURL, html, cb) {
         try {
-            const regex = /href=["'](\/[^"']*)["']/g;
-            const urls = [...html.matchAll(/href=["'](\/[^"']*)["']/g)].map(match => match[1]);       
-            let newURLs = new Set()
-            for(const url of urls) {
-                let newURL = ''
-                if(!url) {
-                    continue
-                }else if (url.startsWith('about')) {
-                    continue
-                }else if(url.startsWith('http')) {
-                    newURL = url
-                    newURLs.add(newURL)
-                }else {
-                    newURL = baseURL + url
-                    newURLs.add(newURL)
+            const dom = new JSDOM(html)
+            const list = dom.window.document.querySelector('div[class="codes-listing"]');
+            if(list) {
+                const aTags = list.querySelectorAll('a');
+                let newURLs = new Set()
+                for(const tag of aTags) {
+                    let newURL = ''
+                    if(!tag.href) {
+                        continue
+                    }else if (tag.href.startsWith('about')) {
+                        continue
+                    }else if(tag.href.startsWith('http')) {
+                        newURL = tag.href
+                        newURLs.add(newURL)
+                    }else { //if(tag.href.startsWith('/')
+                        newURL = baseURL + tag.href
+                        newURLs.add(newURL)
+                    }
                 }
+                cb(null, newURLs)
+            }else {
+                cb(null, [])
             }
-            cb(null, newURLs)
         }catch (error) {
             cb(error, null)
         }
@@ -40,12 +46,11 @@ const mapper = (key, value) => {
                         toProcess.push(url)
                     }
                     if(counter == total){
-                        let maxURLs = 50
+                        let maxURLs = 250
                         const id = require("../util/id")
                         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
                         let newURLs = new Set();
                         if(toProcess.length > maxURLs) {
-                            console.log("greater")
                             newURLs = new Set([...toProcess.slice(maxURLs)])
                             toProcess = toProcess.slice(0, maxURLs);
                         }
@@ -74,7 +79,6 @@ const mapper = (key, value) => {
                                 });
                             })
                             .catch(error => {
-                                console.log("error", url)
                                 return Promise.resolve()
                             })
                         });
@@ -84,6 +88,7 @@ const mapper = (key, value) => {
                                 resolve([...newURLs]);
                             })
                             .catch(err => {
+                                console.log(err)
                                 reject(err);
                             });
                     }
