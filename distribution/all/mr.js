@@ -348,7 +348,6 @@ function mr(config) {
     }
 
     function shuffle(obj, cb) {
-      console.log(`Memory before processing: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
       const id = require('../util/id')
       distribution.local.groups.get(obj.gid, (e, group) => {
         distribution.local.store.get({gid: obj.gid, key: 'mappedValues'}, (e, mappedValues) => {
@@ -385,7 +384,6 @@ function mr(config) {
                 i += 1
                 if(i == Object.keys(nodeToUrls).length) {
                   nodeToUrls = null
-                  console.log(`Memory after processing: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
                   cb(null, null)
                 }
               })

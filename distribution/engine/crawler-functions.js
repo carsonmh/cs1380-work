@@ -40,7 +40,7 @@ const mapper = (key, value) => {
                         toProcess.push(url)
                     }
                     if(counter == total){
-                        let maxURLs = 100
+                        let maxURLs = 50
                         const id = require("../util/id")
                         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
                         let newURLs = new Set();

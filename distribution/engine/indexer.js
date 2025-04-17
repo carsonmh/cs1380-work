@@ -17,6 +17,8 @@ const indexMapper = (key, value) => {
     return false;
   }
 
+  dom.window.close()
+
   let words = cleanText.split(' ').filter((e) => e.length > 0);
   
   let totalCount = words.length;
@@ -41,6 +43,8 @@ const indexMapper = (key, value) => {
   for(const [key, value] of Object.entries(out)) {
     res.push({[key]: value})
   }
+
+  Object.keys(out).forEach(key => delete out[key]);
 
   return new Promise((resolve, reject) => {
       resolve(res);

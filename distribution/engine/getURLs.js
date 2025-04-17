@@ -4,6 +4,7 @@ function getURLs(baseURL, html, cb) {
     try {
         const parsedHTML = new JSDOM(html);
         const aTags = parsedHTML.window.document.querySelectorAll('a');
+        parsedHTML.window.close()
         let newURLs = new Set()
         for(const tag of aTags) {
             let newURL = ''
