@@ -32,11 +32,11 @@ function startCrawl(message, cb) {
     let iteration = 0
 
     function runCrawler(cb) {
-        console.log("running crawler")
         distribution.local.comm.send(
             [{topic: "url", node: id.getID(distribution.node.config)}],
             {node: kafkaNode, service: 'kafka', method: 'consume'},
             (e, v) => {
+                console.log(e, v)
                 if(e) {
                     cb(e, v)
                     return
