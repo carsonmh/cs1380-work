@@ -41,6 +41,7 @@ const mapper = (key, value) => {
         for(const url of value) {
             distribution.local.store.get(url, (e, v) => {
                 distribution.local.store.put('', {key: url, gid: 'workers'}, (e, n) => {
+                    console.log(url)
                     counter += 1
                     if(!v) {
                         toProcess.push(url)
