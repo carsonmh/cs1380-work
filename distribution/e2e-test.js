@@ -115,7 +115,11 @@ let startTime;
 
 function run(cb) {
   console.log('running iteration', iterations)
+  let time = performance.now()
+  console.log('starting crawler @ ', time)
   distribution.workers.mr.exec({keys: ['urls-file-1234'], map: mapper, reduce: reducer}, (e, v) => {
+    time = performance.now()
+    console.log("ran crawler @ ", time)
     if(e) {
       console.log(e)
     }
@@ -130,10 +134,14 @@ function run(cb) {
       const updatedSerializedReducer = serializedReducer.replace('numDocs = 0;', `numDocs = ${count};`);
       let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
       
+      console.log('starting indexer @ ', time)
       distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
+        time = performance.now()
+        console.log("ran indexer @ ", time)
         if(e) {
           console.log(e, v)
         }
+
         if(iterations < numIterations) {
           if(count >= 1000) {
             cb(null, null)
@@ -190,6 +198,7 @@ global.nodeConfig = {
 
 distribution.node.start((server) => {
   startTime = performance.now()
+  console.log("starting @ ", startTime)
   localServer = server;
   start();
 });
