@@ -5,7 +5,7 @@ const args = require('yargs').argv;
 
 const {indexReducer, indexMapper} = require('../indexer')
 
-const kafkaNode = {ip: '127.0.0.1', port: 9001}
+const kafkaNode = {ip: '172.31.30.7', port: 9001}
 
 const crawlGroupGroup = {};
 let localServer = null;
