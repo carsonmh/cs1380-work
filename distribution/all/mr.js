@@ -157,7 +157,7 @@ function mr(config) {
             distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
               distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
                 distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
-                  returnedService.map(key, data).then(result => {
+                  returnedService.map(key, data, (e, result) => {
                     distribution.local.store.put(result, { key: 'mappedValues' + key, gid: obj.gid }, (e, v) => {
                       counter += 1
                       if(counter == total) {
@@ -171,9 +171,9 @@ function mr(config) {
                       }
                     })
                   })
+                  })
                 })
               })
-            })
           }
           // if there is no data -> could be the case in the indexer after we have no urls left (?)
         }
@@ -237,7 +237,6 @@ function mr(config) {
       function startReduce(obj, cb) {
         distribution.local.store.get({key: null, gid: obj.gid}, (e, keys) => {
           let map = {}
-          let i = 0
           if(keys.length == 0) {
             const res = []
             distribution.local.store.put(res, { key: 'result-file-1234', gid: obj.gid }, (e, v) => {
@@ -250,11 +249,11 @@ function mr(config) {
             })
             return
           }
-
+          let i = 0
           for(const key of keys) {
             if(key.includes('shuffleValue')) {
               distribution.local.store.get({key: key, gid: obj.gid}, (e, v) => {
-                distribution.local.store.del({key: key, gid: obj.gid}, (e, v) => {
+                distribution.local.store.del({key: key, gid: obj.gid}, (e, n) => {
                   i += 1
                   for(const mapping of v) {
                     const key = Object.keys(mapping)[0]
@@ -277,11 +276,11 @@ function mr(config) {
 
                       let key;
                       
-                      if(obj.keys.length == 1 && obj.keys[0] == 'urls-file-1234') {
-                        key = 'urls-file-1234'
-                      } else {
+                      // if(obj.keys.length == 1 && obj.keys[0] == 'urls-file-1234') {
+                        // key = 'urls-file-1234'
+                      // } else {
                         key = 'result-file-1234'
-                      }
+                      // }
 
                       distribution.local.store.put(res, { key: key, gid: obj.gid }, (e, v) => {
                         res = null
@@ -339,7 +338,6 @@ function mr(config) {
 
     function shuffle(obj, cb) {
       const id = require('../util/id')
-      console.log("memory usage before: ", Math.round(process.memoryUsage().heapUsed / 1024 / 1024))
       distribution.local.groups.get(obj.gid, (e, group) => {
         distribution.local.store.get({gid: obj.gid, key: null}, (e, keys) => {
           let iter = 0;
@@ -392,7 +390,6 @@ function mr(config) {
                   doProcessing(mappedValues, (e, v) => {
                     iter += 1
                     if(iter == newKeys.length) {
-                      console.log("memory usage after: ", Math.round(process.memoryUsage().heapUsed / 1024 / 1024))
                       cb(null, null)
                     }
                   })

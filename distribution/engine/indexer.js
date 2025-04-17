@@ -1,6 +1,6 @@
 // let index_list = [];
 
-const indexMapper = (key, value) => {
+const indexMapper = (key, value, cb) => {
   const { JSDOM } = require('jsdom');
   
   const out = {};
@@ -11,9 +11,8 @@ const indexMapper = (key, value) => {
   // let textContent = dom.window.document.body.textContent;
   const codeContentDivs = dom.window.document.querySelector('div[id="codes-content"]');
   if(!codeContentDivs || codeContentDivs == undefined) {
-    return new Promise((resolve, reject) => {
-      resolve([])
-    })
+    cb(null, [])
+    return
   }
 
   let textContent = codeContentDivs.textContent
@@ -54,9 +53,7 @@ const indexMapper = (key, value) => {
 
   Object.keys(out).forEach(key => delete out[key]);
 
-  return new Promise((resolve, reject) => {
-      resolve(res);
-  });
+  cb(null, res)
 };
 
 // Reduce function: calculate TF-IDF for each word

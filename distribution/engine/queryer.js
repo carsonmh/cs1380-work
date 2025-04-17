@@ -11,6 +11,8 @@ const n1 = { ip: '172.31.28.223', port: 8000 };
 // const n2 = { ip: '127.0.0.1', port: 7111 };
 // const n3 = { ip: '127.0.0.1', port: 7112 };
 
+// const n1 = { ip: '127.0.0.1', port: 8000 };
+
 const tfidfConfig = { gid: 'workers' };
 
 const query = process.argv.slice(2).join(' ').toLowerCase().replace(/[^\w\s]/g, '').trim();
@@ -147,7 +149,9 @@ function do_the_query() {
                 };
 
                 const configuration = {key: word, gid: "workers"};
+                console.log("about to send")
                 distribution.local.comm.send([configuration], remote, (err, value) => {
+                    console.log(err, value)
                     completed++;
                     
                   
@@ -217,7 +221,7 @@ function do_the_query() {
                         .map(entry => entry[0]);
                   
                       console.log("Relevant URLs for query:", query);
-                      console.log(sorted);
+                      console.log(sorted.length > 5 ? sorted.slice(0, 5) : sorted);
                       end();
                     }
                 });                                    

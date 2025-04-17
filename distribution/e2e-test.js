@@ -6,6 +6,8 @@ const args = require('yargs').argv;
 const {mapper, reducer} = require('./engine/crawler-functions');
 const {indexReducer, indexMapper} = require('./engine/indexer')
 
+
+
 const crawlGroupGroup = {};
 let localServer = null;
 
@@ -58,8 +60,6 @@ async function start() {
     distribution.workers.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
       const urls = [
         'https://law.justia.com/codes/alabama/2024/',
-        'https://law.justia.com/codes/california/2024/',
-        'https://law.justia.com/codes/new-york/2024/',
       ];
     
       distribution.local.groups.get('workers', (e, group) => {
@@ -107,6 +107,7 @@ async function start() {
 
 let iterations = 0;
 let numIterations = args.iterations ? args.iterations : 1;
+let startTime;
 
 function run(cb) {
   console.log('running iteration', iterations, '\n\n')
@@ -114,10 +115,17 @@ function run(cb) {
     if(e) {
       console.log(e)
     }
-    distribution.workers.store.get(null, (e, v) => {
+    distribution.workers.mem.get(null, (e, v) => {
       let count = 0;
       for(const [key, value] of Object.entries(v)) {
         count += value.length;
+      }
+
+      if(count >= 5000) {
+        cb(null, null)
+        const endTime = performance.now();
+        console.log("done. Time taken: ", endTime - startTime)
+        return
       }
 
       const serializedReducer = global.distribution.util.serialize(indexReducer);
@@ -176,6 +184,7 @@ global.nodeConfig = {
 }
 
 distribution.node.start((server) => {
+  startTime = performance.now()
   localServer = server;
   start();
 });
