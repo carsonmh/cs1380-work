@@ -128,7 +128,7 @@ function do_the_query() {
         for (const termRaw of queryTerms) {
             const term = termRaw.toLowerCase().replace(/[^\w]/g, '');
             if (term.length === 0) continue;
-            const hashedNode = id.consistentHash(id.getID(term), groupKeys);
+            const hashedNode = id.rendezvousHash(id.getID(term), groupKeys);
             nodeToWords[hashedNode].push(term);
         }
 

@@ -64,44 +64,52 @@ const mapper = (key, value, cb) => {
         return
     }
 
-    let total = value ? value.length : 0;
-    let counter = 0;
-    let toProcess = [];
-    for(const url of value) {
-        distribution.local.mem.get(url, (e, v) => {
-            counter += 1
-            if(!v) {
-                toProcess.push(url)
-            }
-            if(counter == total){
-                let maxURLs = 100
-                const id = require("../util/id")
-                process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
-                let newURLs = new Set();
-                if(toProcess.length > maxURLs) {
-                    newURLs = new Set([...toProcess.slice(maxURLs)])
-                    toProcess = toProcess.slice(0, maxURLs);
+    distribution.local.store.get({key: 'urls-mem-file', gid: 'workers'}, (e, urlsList) => {
+        if(urlsList) {
+            value = urlsList.concat(value)
+        }
+        let total = value.length
+        let counter = 0;
+        let toProcess = [];
+        for(const url of value) {
+            distribution.local.mem.get(url, (e, v) => {
+                counter += 1
+                if(!v) {
+                    toProcess.push(url)
                 }
-                let i = 0;
-                for(const url of toProcess) {
-                    fetchWithCallback(newURLs, url, (e, v) => {
-                        distribution.local.mem.put('', {key: url, gid: 'workers'}, (e, n) => {
-                            i += 1
-                            if(i == toProcess.length) {
-                                let arr = []
-                                for(const url of newURLs) {
-                                    arr.push({[url]: url})
-                                }
-                                // distribution.local.store.put(arr, {key: 'urls-file-1234', gid: 'workers'}, (e, v) => {
-                                cb(null, arr)
-                                // })
-                            }
-                        })
+                if(counter == total){
+                    let maxURLs = 100
+                    const id = require("../util/id")
+                    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0" 
+                    let newURLs = new Set();
+                    let urlsToSave = new Set();
+                    if(toProcess.length > maxURLs) {
+                        urlsToSave = new Set([...toProcess.slice(maxURLs)])
+                        toProcess = toProcess.slice(0, maxURLs);
+                    }
+                    distribution.local.store.put([...urlsToSave], {key: 'urls-mem-file', gid: 'workers'}, (e, v) => {
+                        let i = 0;
+                        for(const url of toProcess) {
+                            fetchWithCallback(newURLs, url, (e, v) => {
+                                distribution.local.mem.put('', {key: url, gid: 'workers'}, (e, n) => {
+                                    i += 1
+                                    if(i == toProcess.length) {
+                                        let arr = []
+                                        for(const url of newURLs) {
+                                            arr.push({[url]: url})
+                                        }
+                                        // distribution.local.store.put(arr, {key: 'urls-file-1234', gid: 'workers'}, (e, v) => {
+                                        cb(null, arr)
+                                        // })
+                                    }
+                                })
+                            })
+                        }
                     })
                 }
-            }
-        })
-    }
+            })
+        }
+    })
 }
 const reducer = (key, values) => {
     return values[0]

@@ -60,13 +60,17 @@ async function start() {
     distribution.workers.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
       const urls = [
         'https://law.justia.com/codes/alabama/2024/',
+        'https://law.justia.com/codes/california/2024/',
+        'https://law.justia.com/codes/maryland/2024/',
+        'https://law.justia.com/codes/georgia/2024/',
+        'https://law.justia.com/codes/virginia/2023/',
       ];
     
       distribution.local.groups.get('workers', (e, group) => {
         const nodeToUrls = {}
         for(const url of urls) {
           const urlId = id.getID(url)
-          const nodeKey = id.consistentHash(urlId, Object.keys(group))
+          const nodeKey = id.rendezvousHash(urlId, Object.keys(group))
           const node = group[nodeKey]
           if(nodeToUrls[nodeKey]) {
             nodeToUrls[nodeKey].push(url)

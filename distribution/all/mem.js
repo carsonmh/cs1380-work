@@ -22,7 +22,7 @@ function mem(config) {
           callback(e, null)
           return
         }
-        const node = id.consistentHash(kid, Object.keys(group))
+        const node = id.rendezvousHash(kid, Object.keys(group))
         const remote = { node: group[node], service: 'mem', method: 'get'}
         distribution.local.comm.send([{key: configuration, gid: context.gid}], remote, (e, v) => {
           if(e) {
@@ -41,7 +41,7 @@ function mem(config) {
           callback(e, null)
           return
         }
-        const node = id.consistentHash(kid, Object.keys(group))
+        const node = id.rendezvousHash(kid, Object.keys(group))
         // ECONNREFUSED: because the node config is wrong
         const remote = { node: group[node], service: 'mem', method: 'put'}
         distribution.local.comm.send([state, {key: configuration, gid: context.gid}], remote, (e, v) => {
@@ -61,7 +61,7 @@ function mem(config) {
           callback(e, null)
           return
         }
-        const node = id.consistentHash(kid, Object.keys(group))
+        const node = id.rendezvousHash(kid, Object.keys(group))
         const remote = { node: group[node], service: 'mem', method: 'del'}
         distribution.local.comm.send([{key: configuration, gid: context.gid}], remote, (e, v) => {
           if(e) {

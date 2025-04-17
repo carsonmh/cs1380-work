@@ -76,7 +76,7 @@ function mr(config) {
               }
   
               for (const key of keys) {
-                const node = id.consistentHash(id.getID(key), Object.keys(group))
+                const node = id.rendezvousHash(id.getID(key), Object.keys(group))
                 if (nodeToKeys[node]) {
                   nodeToKeys[node].push(key)
                 }
@@ -185,7 +185,7 @@ function mr(config) {
         if(count == memberAmount){ 
           count = 0
           distribution[obj.gid].comm.send(
-            [{ keys: obj.keys, memberCount: obj.memberCount, gid: obj.gid, hash: id.consistentHash, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_shuffle' }],
+            [{ keys: obj.keys, memberCount: obj.memberCount, gid: obj.gid, hash: id.rendezvousHash, node: distribution.node.config, serviceNames: obj.serviceNames, operation: 'start_shuffle' }],
             { service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
               cb(null, null)
             })
@@ -361,7 +361,7 @@ function mr(config) {
                     let nodeToUrls = {}
                     for(const i in mappedValues){ 
                       const mapping = mappedValues[i]
-                      const nodeKey = id.consistentHash(id.getID(Object.keys(mapping)[0]), Object.keys(group))
+                      const nodeKey = id.rendezvousHash(id.getID(Object.keys(mapping)[0]), Object.keys(group))
                       if(nodeToUrls[nodeKey]) {
                         nodeToUrls[nodeKey].push(mapping)
                       }else {
