@@ -55,7 +55,6 @@ function consume(config, cb) {
         // distribution.local.mem.get(null, (err, storedURLs) => {
             // let allURLs = storedURLs || [];
             // const node = id.rendezvousHash(hash, Object.keys(group));
-            console.log(group, config.node)
             const node = config.node;
             let allURLs = [];
             if(!topics['url'][node]) {
