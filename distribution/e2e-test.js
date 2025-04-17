@@ -44,6 +44,9 @@ function promptForWorkerNodes() {
 
 async function start() {
   const workerNodes = await promptForWorkerNodes();
+
+  startTime = performance.now()
+  console.log("starting @ ", startTime)
   
   if (workerNodes.length === 0) {
     console.log('No worker nodes provided. Exiting.');
@@ -197,8 +200,6 @@ global.nodeConfig = {
 }
 
 distribution.node.start((server) => {
-  startTime = performance.now()
-  console.log("starting @ ", startTime)
   localServer = server;
   start();
 });
