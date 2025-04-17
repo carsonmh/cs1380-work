@@ -33,10 +33,9 @@ function startCrawl(message, cb) {
 
     function runCrawler(cb) {
         distribution.local.comm.send(
-            [{topic: "url", node: id.getID(distribution.node.config)}],
+            [{topic: "url", node: id.getID(distribution.node)}],
             {node: kafkaNode, service: 'kafka', method: 'consume'},
             (e, v) => {
-                console.log(e, v)
                 if(e) {
                     cb(e, v)
                     return
