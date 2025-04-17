@@ -62,12 +62,17 @@ async function start() {
   distribution.local.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
     distribution.workers.groups.put(crawlGroupConfig, crawlGroupGroup, (e, v) => {
       const urls = [
-        'https://law.justia.com/codes/alabama/2024/',
-        'https://law.justia.com/codes/california/2024/',
-        'https://law.justia.com/codes/maryland/2024/',
-        'https://law.justia.com/codes/georgia/2024/',
-        'https://law.justia.com/codes/virginia/2023/',
+        'https://law.justia.com/codes/alabama/title-1/',
+        'https://law.justia.com/codes/alabama/title-2/',
+        'https://law.justia.com/codes/alabama/title-3/',
+        'https://law.justia.com/codes/alabama/title-4/',
+        'https://law.justia.com/codes/alabama/title-5/',
+        'https://law.justia.com/codes/alabama/title-6/',
+        'https://law.justia.com/codes/alabama/title-7/',
+        'https://law.justia.com/codes/alabama/title-8/',
+        'https://law.justia.com/codes/alabama/title-9/',
       ];
+
     
       distribution.local.groups.get('workers', (e, group) => {
         const nodeToUrls = {}
@@ -136,7 +141,6 @@ function run(cb) {
       const serializedReducer = global.distribution.util.serialize(indexReducer);
       const updatedSerializedReducer = serializedReducer.replace('numDocs = 0;', `numDocs = ${count};`);
       let reducertfidf = global.distribution.util.deserialize(updatedSerializedReducer);
-      
       console.log('starting indexer @ ', time)
       distribution.workers.mr.exec({keys: ['indexer'], map: indexMapper, reduce: reducertfidf}, (e, v) => {
         time = performance.now()

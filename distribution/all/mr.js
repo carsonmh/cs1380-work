@@ -129,6 +129,7 @@ function mr(config) {
               return sha256Regex.test(filename);
             }
 
+
             obj.keys = keys.filter(key => isSHA256(key))
             total = obj.keys.length;
             go(cb)

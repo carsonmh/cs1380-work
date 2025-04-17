@@ -1,24 +1,27 @@
-function startCrawler (cb) {
-    // const id = require('/home/ubuntu/cs1380-work/distribution/util/id')
-    // const distribution = require('/home/ubuntu/cs1380-work/config'))
-    const distribution = require('../../config')
-    const crawl = require('../engine/crawl')
-    // const fetch = require('node-fetch')
-    const kafkaNode = {ip: '127.0.0.1', port: 9001} // Fill in with the kafkaNode info
+const doCrawl = require('../engine/kafka/doCrawl')
+const kafkaNode = {ip: '127.0.0.1', port: 9001} // Fill in with the kafkaNode info
+const id = require("../util/id")
 
-    const https = require('https');
-    const agent = new https.Agent({
-        rejectUnauthorized: false
-    })
+const https = require('https');
 
+function startCrawl(message, cb) {
     function doProcessing(urls, cb) {
+        let i = 0;
+        if(urls.length == 0){ 
+            cb(null, null)
+            return
+        }
+
         for(const url of urls) {
-            crawl(url, (e, v) => {
+            doCrawl(url, (e, v) => {
                 distribution.local.comm.send(
                     [{topic: "url"}, v],
                     {node: kafkaNode, service: 'kafka', method: 'produce'},
                     (e, v) => {
+                    i += 1
+                    if(i == urls.length) {
                         cb(e, v)
+                    }
                     }
                 )
             })
@@ -28,42 +31,30 @@ function startCrawler (cb) {
     let iteration = 0
 
     function runCrawler(cb) {
-        iteration += 1
         distribution.local.comm.send(
-            [{topic: "job"}],
+            [{topic: "url", node: id.getID(distribution.node.config)}],
             {node: kafkaNode, service: 'kafka', method: 'consume'},
             (e, v) => {
-            if(v && v == 'index') { 
-                cb(null, null)
-            }else if (!v) {
-                distribution.local.comm.send(
-                    [{topic: "url"}],
-                    {node: kafkaNode, service: 'kafka', method: 'consume'},
-                    (e, v) => {
-                        if(e) {
-                            cb(e, null) // shouldn't error on kafka consume
-                            return
-                        }
-
-                        doProcessing(v, (e, v) => {
-                            if(iteration < 5) { // for now fixed 5 iterations
-                                runCrawler((e, v) => {
-                                    cb(e, v)
-                                })
-                            } else {
-                                cb(e, v)
-                            }
-                        })
-                })  
-            }
+                if(e) {
+                    cb(e, v)
+                    return
+                }
+    
+                doProcessing(v, (e, v) => {
+                    iteration += 1
+                    if(iteration < 5){
+                        runCrawler((e, v) => {cb(e, v)})
+                    }else {
+                        cb(null, null)
+                    }
+                })
         })
 
     }
 
     runCrawler((e, v) => {
-        cb(e, v); 
-        console.log('crawler finished')
-    })
-}  
+        cb(e, v)
+    }) 
+} 
 
-module.exports = {startCrawler}
+module.exports = {startCrawl}

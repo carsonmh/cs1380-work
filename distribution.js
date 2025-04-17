@@ -29,6 +29,7 @@ if (args.port) {
 }
 
 if(args.kafka) {
+  console.log("kafka node up!")
   global.nodeConfig.kafka = true
 }
 

@@ -58,9 +58,7 @@ const mapper = (key, value, cb) => {
     }
 
     if(!value) {
-        // distribution.local.store.put([], {key: 'urls-file-1234', gid: 'workers'}, (e, v) => {
-            cb(null, [])
-        // })
+        cb(null, [])
         return
     }
 

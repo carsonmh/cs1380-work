@@ -32,6 +32,7 @@ groups.put = function(config, group, callback) {
     distribution[config.gid]['mem'] = require('../all/mem')(config)
     distribution[config.gid]['store'] = require('../all/store')(config)
     distribution[config.gid]['mr'] = require('../all/mr')(config)
+    distribution[config.gid]['crawl'] = require('../all/crawl')(config)
     for(const [key, value] of Object.entries(group)) {
         if(!distribution['all'][key]) {
             distribution['all'][key] = value
