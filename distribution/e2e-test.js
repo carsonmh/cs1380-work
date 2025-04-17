@@ -110,7 +110,7 @@ let numIterations = args.iterations ? args.iterations : 1;
 let startTime;
 
 function run(cb) {
-  console.log('running iteration', iterations, '\n\n')
+  console.log('running iteration', iterations)
   distribution.workers.mr.exec({keys: ['urls-file-1234'], map: mapper, reduce: reducer}, (e, v) => {
     if(e) {
       console.log(e)
@@ -120,6 +120,8 @@ function run(cb) {
       for(const [key, value] of Object.entries(v)) {
         count += value.length;
       }
+
+      console.log('crawled: ', count)
 
       if(count >= 1000) {
         cb(null, null)
