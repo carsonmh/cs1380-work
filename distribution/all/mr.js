@@ -391,9 +391,7 @@ function mr(config) {
                   doProcessing(mappedValues, (e, v) => {
                     iter += 1
                     if(iter == newKeys.length) {
-                      setTimeout(() => {
-                        cb(null, null)
-                      }, 2000)
+                      cb(null, null)
                     }
                   })
                   })

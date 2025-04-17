@@ -43,7 +43,7 @@ function startCrawl(message, cb) {
     
                 doProcessing(v, (e, v) => {
                     iteration += 1
-                    if(iteration < 5){
+                    if(iteration < 2){
                         runCrawler((e, v) => {cb(e, v)})
                     }else {
                         cb(null, null)
