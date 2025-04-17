@@ -5,6 +5,7 @@ const id = require("../util/id")
 const https = require('https');
 
 function startCrawl(message, cb) {
+
     function doProcessing(urls, cb) {
         let i = 0;
         if(urls.length == 0){ 
@@ -31,6 +32,7 @@ function startCrawl(message, cb) {
     let iteration = 0
 
     function runCrawler(cb) {
+        console.log("running crawler")
         distribution.local.comm.send(
             [{topic: "url", node: id.getID(distribution.node.config)}],
             {node: kafkaNode, service: 'kafka', method: 'consume'},
