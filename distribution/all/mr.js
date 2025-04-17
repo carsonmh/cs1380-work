@@ -157,23 +157,23 @@ function mr(config) {
             distribution.local.store.get({ gid: obj.gid, key: key }, (e, data) => {
               distribution.local.store.del({ gid: obj.gid, key: key }, (e, result) => {
                 distribution.local.routes.get(obj.serviceNames.mapServiceName, (e, returnedService) => {
-                  returnedService.map(key, data, (e, result) => {
-                    distribution.local.store.put(result, { key: 'mappedValues' + key, gid: obj.gid }, (e, v) => {
-                      counter += 1
-                      if(counter == total) {
-                        arr = null
-                        const operatorNode = obj.node
-                        obj.operation = 'map_sync'
-                        obj.node = distribution.node.config
-                        distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
-                          cb(null, null)
-                        })
-                      }
+                  returnedService.map(key, data, (e, res) => {
+                      distribution.local.store.put(res, { key: 'mappedValues' + key, gid: obj.gid }, (e, v) => {
+                        counter += 1
+                        if(counter == total) {
+                          arr = null
+                          const operatorNode = obj.node
+                          obj.operation = 'map_sync'
+                          obj.node = distribution.node.config
+                          distribution.local.comm.send([obj], { node: operatorNode, service: obj.serviceNames.notifyServiceName, method: 'notify' }, (e, v) => {
+                            cb(null, null)
+                          })
+                        }
+                      })
                     })
                   })
                   })
                 })
-              })
           }
           // if there is no data -> could be the case in the indexer after we have no urls left (?)
         }
@@ -276,11 +276,11 @@ function mr(config) {
 
                       let key;
                       
-                      // if(obj.keys.length == 1 && obj.keys[0] == 'urls-file-1234') {
-                        // key = 'urls-file-1234'
-                      // } else {
+                      if(obj.keys.length == 1 && obj.keys[0] == 'urls-file-1234') {
+                        key = 'urls-file-1234'
+                      } else {
                         key = 'result-file-1234'
-                      // }
+                      }
 
                       distribution.local.store.put(res, { key: key, gid: obj.gid }, (e, v) => {
                         res = null

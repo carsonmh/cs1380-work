@@ -121,7 +121,7 @@ function run(cb) {
         count += value.length;
       }
 
-      if(count >= 5000) {
+      if(count >= 1000) {
         cb(null, null)
         const endTime = performance.now();
         console.log("done. Time taken: ", endTime - startTime)
