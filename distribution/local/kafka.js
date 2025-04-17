@@ -26,6 +26,7 @@ function produce(config, message, cb) {
                             topics['url'][node] = []
                         }
                         topics['url'][node].push(url);
+                        i += 1
                         if(i == message.length) {
                             cb(null, null)
                         }

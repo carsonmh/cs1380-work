@@ -20,7 +20,7 @@ function promptForWorkerNodes() {
     const workerNodes = [];
     
     function askForNode() {
-        rl.question('Enter worker node IP and port (format: "ip:port"), or press enter to finish: ', (answer) => {
+        rl.question('Enter worker node IP and port (IP:PORT)', (answer) => {
         if (answer.trim() === '') {
             rl.close();
             resolve(workerNodes);
@@ -30,7 +30,6 @@ function promptForWorkerNodes() {
             workerNodes.push({ ip: ip.trim(), port: parseInt(port.trim()) });
             askForNode();
             } else {
-            console.log('Invalid format. Please use "ip:port" format.');
             askForNode();
             }
         }
@@ -46,7 +45,6 @@ async function start() {
     startTime = performance.now()
 
     if (workerNodes.length === 0) {
-        console.log('No worker nodes provided. Exiting.');
         process.exit(1);
     }
 
